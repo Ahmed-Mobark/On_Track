@@ -8,7 +8,7 @@ import { motion, AnimatePresence } from "framer-motion";
 
 const mockProducts = Array.from({ length: 12 }, (_, i) => ({
   id: `${i + 1}`,
-  name: ["Premium Sports Tee", "Performance Shorts", "Oversized Hoodie", "Slim Joggers", "Tank Top", "Compression Top", "Track Pants", "Sports Bra", "Oversized Tee", "Gym Shorts", "Zip Hoodie", "Leggings"][i],
+  name: ["تيشيرت رياضي بريميوم", "شورت أداء عالي", "هودي أوفرسايز", "بنطلون جوجر سليم", "تانك توب", "توب ضغط رياضي", "بنطلون تراك", "سبورتس برا", "تيشيرت أوفرسايز", "شورت جيم", "هودي بسوستة", "ليجنز"][i],
   slug: `product-${i + 1}`,
   basePrice: [299, 349, 599, 499, 249, 399, 449, 329, 379, 289, 649, 399][i],
   salePrice: i % 4 === 0 ? [249, 0, 0, 0, 199, 0, 0, 0, 319, 0, 0, 0][i] || undefined : undefined,
@@ -16,7 +16,7 @@ const mockProducts = Array.from({ length: 12 }, (_, i) => ({
 }));
 
 const sizes = ["XS", "S", "M", "L", "XL", "XXL"];
-const colors = ["Black", "White", "Gray", "Red", "Navy"];
+const colors = ["أسود", "أبيض", "رمادي", "أحمر", "كحلي"];
 
 export default function ShopPage() {
   const [filtersOpen, setFiltersOpen] = useState(false);
@@ -26,15 +26,15 @@ export default function ShopPage() {
       <div className="mx-auto max-w-7xl px-4 py-8">
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-heading font-bold text-white">Shop All</h1>
-            <p className="text-white/40 text-sm mt-1">{mockProducts.length} products</p>
+            <h1 className="text-3xl font-heading font-bold text-white">كل المنتجات</h1>
+            <p className="text-white/40 text-sm mt-1">{mockProducts.length} منتج</p>
           </div>
           <div className="flex items-center gap-3">
             <select className="bg-brand-dark border border-white/10 text-white text-sm rounded-lg px-4 py-2 focus:outline-none focus:border-brand-red">
-              <option>Newest</option>
-              <option>Most Popular</option>
-              <option>Price: Low to High</option>
-              <option>Price: High to Low</option>
+              <option>الأحدث</option>
+              <option>الأكثر مبيعاً</option>
+              <option>السعر: من الأقل</option>
+              <option>السعر: من الأعلى</option>
             </select>
             <Button
               variant="outline"
@@ -43,7 +43,7 @@ export default function ShopPage() {
               onClick={() => setFiltersOpen(true)}
             >
               <SlidersHorizontal size={16} className="mr-2" />
-              Filters
+              فلاتر
             </Button>
           </div>
         </div>
@@ -52,9 +52,9 @@ export default function ShopPage() {
           <aside className="hidden lg:block w-60 shrink-0">
             <div className="sticky top-24 space-y-6">
               <div>
-                <h3 className="text-white font-semibold mb-3 text-sm uppercase tracking-wider">Category</h3>
+                <h3 className="text-white font-semibold mb-3 text-sm uppercase tracking-wider">التصنيف</h3>
                 <div className="space-y-2">
-                  {["All", "Men", "Women", "Oversized", "Compression", "Shorts", "Sets"].map((cat) => (
+                  {["الكل", "رجالي", "حريمي", "أوفرسايز", "كومبريشن", "شورتات", "أطقم"].map((cat) => (
                     <label key={cat} className="flex items-center gap-2 text-white/60 hover:text-white text-sm cursor-pointer">
                       <input type="checkbox" className="rounded border-white/20 bg-transparent accent-brand-red" />
                       {cat}
@@ -63,7 +63,7 @@ export default function ShopPage() {
                 </div>
               </div>
               <div>
-                <h3 className="text-white font-semibold mb-3 text-sm uppercase tracking-wider">Size</h3>
+                <h3 className="text-white font-semibold mb-3 text-sm uppercase tracking-wider">المقاس</h3>
                 <div className="flex flex-wrap gap-2">
                   {sizes.map((size) => (
                     <button key={size} className="px-3 py-1.5 border border-white/10 rounded text-white/60 text-sm hover:border-brand-red hover:text-brand-red transition-colors">
@@ -73,7 +73,7 @@ export default function ShopPage() {
                 </div>
               </div>
               <div>
-                <h3 className="text-white font-semibold mb-3 text-sm uppercase tracking-wider">Color</h3>
+                <h3 className="text-white font-semibold mb-3 text-sm uppercase tracking-wider">اللون</h3>
                 <div className="space-y-2">
                   {colors.map((color) => (
                     <label key={color} className="flex items-center gap-2 text-white/60 hover:text-white text-sm cursor-pointer">
@@ -84,11 +84,11 @@ export default function ShopPage() {
                 </div>
               </div>
               <div>
-                <h3 className="text-white font-semibold mb-3 text-sm uppercase tracking-wider">Price Range</h3>
+                <h3 className="text-white font-semibold mb-3 text-sm uppercase tracking-wider">نطاق السعر</h3>
                 <div className="flex items-center gap-2">
-                  <input type="number" placeholder="Min" className="w-full bg-brand-dark border border-white/10 rounded px-3 py-2 text-white text-sm focus:outline-none focus:border-brand-red" />
+                  <input type="number" placeholder="أقل" className="w-full bg-brand-dark border border-white/10 rounded px-3 py-2 text-white text-sm focus:outline-none focus:border-brand-red" />
                   <span className="text-white/40">-</span>
-                  <input type="number" placeholder="Max" className="w-full bg-brand-dark border border-white/10 rounded px-3 py-2 text-white text-sm focus:outline-none focus:border-brand-red" />
+                  <input type="number" placeholder="أكثر" className="w-full bg-brand-dark border border-white/10 rounded px-3 py-2 text-white text-sm focus:outline-none focus:border-brand-red" />
                 </div>
               </div>
             </div>
@@ -110,12 +110,12 @@ export default function ShopPage() {
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 bg-black/50" onClick={() => setFiltersOpen(false)} />
             <motion.div initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }} className="fixed right-0 top-0 bottom-0 z-50 w-80 bg-brand-dark p-6 overflow-y-auto">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-white font-heading font-bold text-lg">Filters</h2>
+                <h2 className="text-white font-heading font-bold text-lg">فلاتر</h2>
                 <button onClick={() => setFiltersOpen(false)} className="text-white/60"><X size={20} /></button>
               </div>
               <div className="space-y-6">
                 <div>
-                  <h3 className="text-white font-semibold mb-3 text-sm uppercase">Size</h3>
+                  <h3 className="text-white font-semibold mb-3 text-sm uppercase">المقاس</h3>
                   <div className="flex flex-wrap gap-2">
                     {sizes.map((size) => (
                       <button key={size} className="px-3 py-1.5 border border-white/10 rounded text-white/60 text-sm hover:border-brand-red hover:text-brand-red transition-colors">{size}</button>
@@ -123,7 +123,7 @@ export default function ShopPage() {
                   </div>
                 </div>
                 <div>
-                  <h3 className="text-white font-semibold mb-3 text-sm uppercase">Color</h3>
+                  <h3 className="text-white font-semibold mb-3 text-sm uppercase">اللون</h3>
                   <div className="space-y-2">
                     {colors.map((color) => (
                       <label key={color} className="flex items-center gap-2 text-white/60 text-sm cursor-pointer">

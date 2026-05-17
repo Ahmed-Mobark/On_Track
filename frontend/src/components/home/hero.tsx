@@ -31,28 +31,28 @@ export function Hero() {
             transition={{ duration: 0.8 }}
           >
             <span className="inline-block text-brand-red font-heading font-semibold text-sm uppercase tracking-[0.2em] mb-4">
-              New Collection 2026
+              كوليكشن جديد 2026
             </span>
             <h1 className="text-5xl md:text-7xl lg:text-8xl font-heading font-black text-white leading-[0.9] mb-6">
-              PUSH YOUR{" "}
-              <span className="text-gradient">LIMITS</span>
+              تخطى{" "}
+              <span className="text-gradient">حدودك</span>
             </h1>
             <p className="text-white/60 text-lg md:text-xl mb-8 max-w-md">
-              Premium sportswear engineered for performance. Designed for those who never stop moving.
+              ملابس رياضية بريميوم مصممة للأداء. صُنعت لمن لا يتوقفون عن الحركة.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
               <Link
                 href="/shop"
                 className="inline-flex items-center justify-center gap-2 bg-brand-red hover:bg-brand-red-dark text-white font-semibold px-8 py-4 rounded-lg transition-all group text-lg"
               >
-                Shop Now
+                تسوق الآن
                 <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
               </Link>
               <Link
                 href="/shop?sort=newest"
                 className="inline-flex items-center justify-center gap-2 border border-white/20 hover:border-white/40 text-white font-semibold px-8 py-4 rounded-lg transition-colors text-lg"
               >
-                New Arrivals
+                وصل حديثاً
               </Link>
             </div>
           </motion.div>

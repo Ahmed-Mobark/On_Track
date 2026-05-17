@@ -3,18 +3,19 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
+import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search, ShoppingBag, Heart, User, Menu, X } from "lucide-react";
 import { useCartStore } from "@/store/cart";
 import { useAuthStore } from "@/store/auth";
 
 const navLinks = [
-  { href: "/shop", label: "Shop All" },
-  { href: "/shop?gender=men", label: "Men" },
-  { href: "/shop?gender=women", label: "Women" },
-  { href: "/shop?category=oversized", label: "Oversized" },
-  { href: "/shop?category=compression", label: "Compression" },
-  { href: "/shop?category=sets", label: "Sets" },
+  { href: "/shop", label: "تسوق الكل" },
+  { href: "/shop?gender=men", label: "رجالي" },
+  { href: "/shop?gender=women", label: "حريمي" },
+  { href: "/shop?category=oversized", label: "أوفرسايز" },
+  { href: "/shop?category=compression", label: "كومبريشن" },
+  { href: "/shop?category=sets", label: "أطقم" },
 ];
 
 export function Header() {
@@ -22,11 +23,14 @@ export function Header() {
   const [searchOpen, setSearchOpen] = useState(false);
   const { items } = useCartStore();
   const { isAuthenticated } = useAuthStore();
+  const pathname = usePathname();
+
+  if (pathname.startsWith("/admin")) return null;
 
   return (
     <>
       <div className="bg-brand-red text-white text-center py-2 text-sm font-medium">
-        Free Shipping on Orders Over 500 EGP
+        شحن مجاني للطلبات فوق 500 ج.م
       </div>
 
       <header className="sticky top-0 z-50 bg-brand-black border-b border-white/10">
@@ -108,10 +112,10 @@ export function Header() {
                 ))}
                 <div className="flex gap-4 pt-3 border-t border-white/10">
                   <Link href="/wishlist" className="text-white/80 hover:text-white flex items-center gap-2 text-sm">
-                    <Heart size={18} /> Wishlist
+                    <Heart size={18} /> المفضلة
                   </Link>
                   <Link href={isAuthenticated ? "/account" : "/login"} className="text-white/80 hover:text-white flex items-center gap-2 text-sm">
-                    <User size={18} /> Account
+                    <User size={18} /> حسابي
                   </Link>
                 </div>
               </nav>
@@ -140,7 +144,7 @@ export function Header() {
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-white/50" size={24} />
                 <input
                   type="text"
-                  placeholder="Search products..."
+                  placeholder="ابحث عن منتجات..."
                   className="w-full bg-white/10 border border-white/20 rounded-xl py-4 pl-14 pr-4 text-white text-lg placeholder:text-white/40 focus:outline-none focus:border-brand-red"
                   autoFocus
                 />

@@ -5,14 +5,14 @@ import { ProductsSection } from "@/components/home/products-section";
 const mockProducts = Array.from({ length: 8 }, (_, i) => ({
   id: `${i + 1}`,
   name: [
-    "Premium Sports Tee",
-    "Performance Shorts",
-    "Oversized Hoodie",
-    "Slim Joggers",
-    "Tank Top",
-    "Compression Top",
-    "Track Pants",
-    "Sports Bra",
+    "تيشيرت رياضي بريميوم",
+    "شورت أداء عالي",
+    "هودي أوفرسايز",
+    "بنطلون جوجر سليم",
+    "تانك توب",
+    "توب ضغط رياضي",
+    "بنطلون تراك",
+    "سبورتس برا",
   ][i],
   slug: `product-${i + 1}`,
   basePrice: [299, 349, 599, 499, 249, 399, 449, 329][i],
@@ -29,14 +29,14 @@ export default function Home() {
       <Hero />
       <CategoriesSection />
       <ProductsSection
-        title="Best"
-        highlight="Sellers"
+        title="الأكثر"
+        highlight="مبيعاً"
         products={mockProducts.slice(0, 4)}
         viewAllHref="/shop?sort=popular"
       />
       <ProductsSection
-        title="New"
-        highlight="Arrivals"
+        title="وصل"
+        highlight="حديثاً"
         products={mockProducts.slice(4)}
         viewAllHref="/shop?sort=newest"
       />
@@ -45,12 +45,12 @@ export default function Home() {
         <div className="mx-auto max-w-7xl px-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {[
-              { title: "Free Shipping", desc: "On orders over 500 EGP" },
-              { title: "Easy Returns", desc: "14-day return policy" },
-              { title: "Secure Payment", desc: "100% secure checkout" },
+              { title: "شحن مجاني", desc: "للطلبات فوق 500 ج.م" },
+              { title: "إرجاع سهل", desc: "خلال 14 يوم" },
+              { title: "دفع آمن", desc: "100% حماية" },
               {
-                title: "Premium Quality",
-                desc: "Engineered for performance",
+                title: "جودة بريميوم",
+                desc: "مصممة للأداء",
               },
             ].map((feature) => (
               <div key={feature.title} className="text-center">

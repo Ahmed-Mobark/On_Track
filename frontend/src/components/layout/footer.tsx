@@ -1,52 +1,58 @@
+"use client";
+
 import Link from "next/link";
 import Image from "next/image";
+import { usePathname } from "next/navigation";
 import { Globe, Mail, Phone } from "lucide-react";
 
 const footerLinks = {
   shop: [
-    { label: "Men", href: "/shop?gender=men" },
-    { label: "Women", href: "/shop?gender=women" },
-    { label: "Oversized", href: "/shop?category=oversized" },
-    { label: "Compression", href: "/shop?category=compression" },
-    { label: "Sets", href: "/shop?category=sets" },
+    { label: "رجالي", href: "/shop?gender=men" },
+    { label: "حريمي", href: "/shop?gender=women" },
+    { label: "أوفرسايز", href: "/shop?category=oversized" },
+    { label: "كومبريشن", href: "/shop?category=compression" },
+    { label: "أطقم", href: "/shop?category=sets" },
   ],
   help: [
-    { label: "Contact Us", href: "/contact" },
-    { label: "FAQ", href: "/faq" },
-    { label: "Shipping Policy", href: "/shipping-policy" },
-    { label: "Return Policy", href: "/return-policy" },
-    { label: "Size Guide", href: "/size-guide" },
+    { label: "تواصل معنا", href: "/contact" },
+    { label: "أسئلة شائعة", href: "/faq" },
+    { label: "سياسة الشحن", href: "/shipping-policy" },
+    { label: "سياسة الإرجاع", href: "/return-policy" },
+    { label: "دليل المقاسات", href: "/size-guide" },
   ],
   company: [
-    { label: "About Us", href: "/about" },
-    { label: "Privacy Policy", href: "/privacy" },
-    { label: "Terms & Conditions", href: "/terms" },
+    { label: "من نحن", href: "/about" },
+    { label: "سياسة الخصوصية", href: "/privacy" },
+    { label: "الشروط والأحكام", href: "/terms" },
   ],
 };
 
 export function Footer() {
+  const pathname = usePathname();
+  if (pathname.startsWith("/admin")) return null;
+
   return (
     <footer className="bg-brand-black text-white">
       <div className="border-b border-white/10">
         <div className="mx-auto max-w-7xl px-4 py-12">
           <div className="max-w-xl mx-auto text-center">
             <h3 className="text-2xl font-heading font-bold mb-2">
-              Join the <span className="text-brand-red">Movement</span>
+              انضم لـ <span className="text-brand-red">الحركة</span>
             </h3>
             <p className="text-white/60 mb-6">
-              Subscribe for exclusive drops, early access & special offers.
+              اشترك للحصول على عروض حصرية وإصدارات جديدة قبل الكل.
             </p>
             <form className="flex gap-2">
               <input
                 type="email"
-                placeholder="Enter your email"
+                placeholder="أدخل بريدك الإلكتروني"
                 className="flex-1 bg-white/10 border border-white/20 rounded-lg px-4 py-3 text-white placeholder:text-white/40 focus:outline-none focus:border-brand-red"
               />
               <button
                 type="submit"
                 className="bg-brand-red hover:bg-brand-red-dark text-white font-semibold px-6 py-3 rounded-lg transition-colors"
               >
-                Subscribe
+                اشترك
               </button>
             </form>
           </div>
@@ -66,7 +72,7 @@ export function Footer() {
               />
             </Link>
             <p className="text-white/50 text-sm mb-4">
-              Premium sportswear for those who never stop moving.
+              ملابس رياضية بريميوم لمن لا يتوقفون عن الحركة.
             </p>
             <div className="flex gap-4">
               <a href="#" className="text-white/50 hover:text-brand-red transition-colors"><Globe size={20} /></a>
@@ -75,7 +81,7 @@ export function Footer() {
             </div>
           </div>
           <div>
-            <h4 className="font-heading font-semibold mb-4 text-sm uppercase tracking-wider">Shop</h4>
+            <h4 className="font-heading font-semibold mb-4 text-sm uppercase tracking-wider">تسوق</h4>
             <ul className="space-y-2">
               {footerLinks.shop.map((link) => (
                 <li key={link.href}>
@@ -85,7 +91,7 @@ export function Footer() {
             </ul>
           </div>
           <div>
-            <h4 className="font-heading font-semibold mb-4 text-sm uppercase tracking-wider">Help</h4>
+            <h4 className="font-heading font-semibold mb-4 text-sm uppercase tracking-wider">مساعدة</h4>
             <ul className="space-y-2">
               {footerLinks.help.map((link) => (
                 <li key={link.href}>
@@ -95,7 +101,7 @@ export function Footer() {
             </ul>
           </div>
           <div>
-            <h4 className="font-heading font-semibold mb-4 text-sm uppercase tracking-wider">Company</h4>
+            <h4 className="font-heading font-semibold mb-4 text-sm uppercase tracking-wider">الشركة</h4>
             <ul className="space-y-2">
               {footerLinks.company.map((link) => (
                 <li key={link.href}>
@@ -109,7 +115,7 @@ export function Footer() {
 
       <div className="border-t border-white/10">
         <div className="mx-auto max-w-7xl px-4 py-6 text-center text-white/30 text-sm">
-          &copy; {new Date().getFullYear()} On Track. All rights reserved.
+          &copy; {new Date().getFullYear()} On Track. جميع الحقوق محفوظة.
         </div>
       </div>
     </footer>

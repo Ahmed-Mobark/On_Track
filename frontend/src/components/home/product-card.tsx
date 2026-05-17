@@ -62,7 +62,7 @@ export function ProductCard({ product }: ProductCardProps) {
               className="w-full bg-brand-red hover:bg-brand-red-dark text-white text-sm font-semibold py-2.5 rounded-lg transition-colors"
               onClick={(e) => e.preventDefault()}
             >
-              Quick Add
+              إضافة سريعة
             </button>
           </div>
         </div>
@@ -73,11 +73,11 @@ export function ProductCard({ product }: ProductCardProps) {
         <div className="flex items-center gap-2">
           {hasDiscount ? (
             <>
-              <span className="text-brand-red font-bold">{product.salePrice} EGP</span>
-              <span className="text-white/40 line-through text-sm">{product.basePrice} EGP</span>
+              <span className="text-brand-red font-bold">{product.salePrice} ج.م</span>
+              <span className="text-white/40 line-through text-sm">{product.basePrice} ج.م</span>
             </>
           ) : (
-            <span className="text-white font-bold">{product.basePrice} EGP</span>
+            <span className="text-white font-bold">{product.basePrice} ج.م</span>
           )}
         </div>
       </Link>

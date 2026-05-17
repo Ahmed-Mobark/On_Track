@@ -23,7 +23,7 @@ export function ProductsSection({ title, highlight, products, viewAllHref }: Pro
             href={viewAllHref}
             className="hidden sm:flex items-center gap-1 text-white/60 hover:text-brand-red text-sm font-medium transition-colors"
           >
-            View All <ArrowRight size={16} />
+            عرض الكل <ArrowRight size={16} />
           </Link>
         </div>
 
@@ -35,7 +35,7 @@ export function ProductsSection({ title, highlight, products, viewAllHref }: Pro
 
         <div className="sm:hidden mt-8 text-center">
           <Link href={viewAllHref} className="inline-flex items-center gap-1 text-brand-red font-medium">
-            View All <ArrowRight size={16} />
+            عرض الكل <ArrowRight size={16} />
           </Link>
         </div>
       </div>

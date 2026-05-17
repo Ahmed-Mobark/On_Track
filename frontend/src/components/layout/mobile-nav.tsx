@@ -6,11 +6,11 @@ import { Home, Search, ShoppingBag, Heart, User } from "lucide-react";
 import { useCartStore } from "@/store/cart";
 
 const navItems = [
-  { href: "/", icon: Home, label: "Home" },
-  { href: "/shop", icon: Search, label: "Shop" },
-  { href: "/cart", icon: ShoppingBag, label: "Cart" },
-  { href: "/wishlist", icon: Heart, label: "Wishlist" },
-  { href: "/account", icon: User, label: "Account" },
+  { href: "/", icon: Home, label: "الرئيسية" },
+  { href: "/shop", icon: Search, label: "المتجر" },
+  { href: "/cart", icon: ShoppingBag, label: "السلة" },
+  { href: "/wishlist", icon: Heart, label: "المفضلة" },
+  { href: "/account", icon: User, label: "حسابي" },
 ];
 
 export function MobileNav() {
@@ -32,7 +32,7 @@ export function MobileNav() {
             >
               <item.icon size={20} />
               <span className="text-[10px] font-medium">{item.label}</span>
-              {item.label === "Cart" && items.length > 0 && (
+              {item.label === "السلة" && items.length > 0 && (
                 <span className="absolute -top-1 right-0 bg-brand-red text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center">
                   {items.length}
                 </span>

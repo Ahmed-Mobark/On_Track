@@ -4,12 +4,12 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 
 const categories = [
-  { name: "Men", slug: "men" },
-  { name: "Women", slug: "women" },
-  { name: "Oversized", slug: "oversized" },
-  { name: "Compression", slug: "compression" },
-  { name: "Shorts", slug: "shorts" },
-  { name: "Sets", slug: "sets" },
+  { name: "رجالي", slug: "men" },
+  { name: "حريمي", slug: "women" },
+  { name: "أوفرسايز", slug: "oversized" },
+  { name: "كومبريشن", slug: "compression" },
+  { name: "شورتات", slug: "shorts" },
+  { name: "أطقم", slug: "sets" },
 ];
 
 export function CategoriesSection() {
@@ -18,9 +18,9 @@ export function CategoriesSection() {
       <div className="mx-auto max-w-7xl px-4">
         <div className="text-center mb-12">
           <h2 className="text-3xl lg:text-4xl font-heading font-bold text-white mb-2">
-            Shop by <span className="text-brand-red">Category</span>
+            تسوق حسب <span className="text-brand-red">التصنيف</span>
           </h2>
-          <p className="text-white/50">Find your perfect fit</p>
+          <p className="text-white/50">اختار اللي يناسبك</p>
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4 lg:gap-6">
@@ -45,7 +45,7 @@ export function CategoriesSection() {
                     {cat.name}
                   </h3>
                   <span className="text-white/50 text-sm group-hover:text-white/70 transition-colors">
-                    Shop Now &rarr;
+                    تسوق الآن &larr;
                   </span>
                 </div>
               </Link>

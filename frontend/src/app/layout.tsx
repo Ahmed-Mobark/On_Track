@@ -15,20 +15,21 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
-  title: "On Track | Premium Sportswear",
+  title: "On Track | ملابس رياضية بريميوم",
   description:
-    "Premium sportswear engineered for performance. Designed for those who never stop moving.",
+    "ملابس رياضية بريميوم مصممة للأداء العالي. صُنعت لمن لا يتوقفون عن الحركة.",
   keywords: [
-    "sportswear",
-    "activewear",
-    "gym",
-    "fitness",
-    "egypt",
+    "ملابس رياضية",
+    "رياضة",
+    "جيم",
+    "فيتنس",
+    "مصر",
     "on track",
+    "sportswear",
   ],
   openGraph: {
-    title: "On Track | Premium Sportswear",
-    description: "Premium sportswear engineered for performance.",
+    title: "On Track | ملابس رياضية بريميوم",
+    description: "ملابس رياضية بريميوم مصممة للأداء العالي.",
     type: "website",
   },
 };
@@ -39,7 +40,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${inter.variable} ${poppins.variable} dark`}>
+    <html lang="ar" dir="rtl" className={`${inter.variable} ${poppins.variable} dark`}>
       <body className="font-sans antialiased">
         <QueryProvider>
           <Header />

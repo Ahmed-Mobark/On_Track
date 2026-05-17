@@ -5,19 +5,19 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard, Package, FolderTree, ShoppingCart,
-  Users, Ticket, BarChart3, Settings, LogOut, Menu, X,
+  Users, Ticket, BarChart3, Settings, LogOut, Menu, X, ExternalLink,
 } from "lucide-react";
 import { useState } from "react";
 
 const sidebarLinks = [
-  { href: "/admin", icon: LayoutDashboard, label: "Dashboard" },
-  { href: "/admin/products", icon: Package, label: "Products" },
-  { href: "/admin/categories", icon: FolderTree, label: "Categories" },
-  { href: "/admin/orders", icon: ShoppingCart, label: "Orders" },
-  { href: "/admin/customers", icon: Users, label: "Customers" },
-  { href: "/admin/coupons", icon: Ticket, label: "Coupons" },
-  { href: "/admin/analytics", icon: BarChart3, label: "Analytics" },
-  { href: "/admin/settings", icon: Settings, label: "Settings" },
+  { href: "/admin", icon: LayoutDashboard, label: "\u0644\u0648\u062D\u0629 \u0627\u0644\u062A\u062D\u0643\u0645" },
+  { href: "/admin/products", icon: Package, label: "\u0627\u0644\u0645\u0646\u062A\u062C\u0627\u062A" },
+  { href: "/admin/categories", icon: FolderTree, label: "\u0627\u0644\u062A\u0635\u0646\u064A\u0641\u0627\u062A" },
+  { href: "/admin/orders", icon: ShoppingCart, label: "\u0627\u0644\u0637\u0644\u0628\u0627\u062A" },
+  { href: "/admin/customers", icon: Users, label: "\u0627\u0644\u0639\u0645\u0644\u0627\u0621" },
+  { href: "/admin/coupons", icon: Ticket, label: "\u0627\u0644\u0643\u0648\u0628\u0648\u0646\u0627\u062A" },
+  { href: "/admin/analytics", icon: BarChart3, label: "\u0627\u0644\u062A\u062D\u0644\u064A\u0644\u0627\u062A" },
+  { href: "/admin/settings", icon: Settings, label: "\u0627\u0644\u0625\u0639\u062F\u0627\u062F\u0627\u062A" },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -25,9 +25,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-brand-black flex">
+    <div dir="rtl" className="min-h-screen bg-brand-black flex">
       <aside
-        className={`fixed lg:static inset-y-0 left-0 z-50 w-64 bg-brand-dark border-r border-white/10 transform transition-transform lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}
+        className={`fixed lg:static inset-y-0 right-0 z-50 w-64 bg-brand-dark border-l border-white/10 transform transition-transform lg:translate-x-0 ${sidebarOpen ? "translate-x-0" : "translate-x-full"}`}
       >
         <div className="flex items-center justify-between h-16 px-6 border-b border-white/10">
           <Link href="/admin" className="flex items-center gap-2">
@@ -64,7 +64,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
         <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-white/10">
           <button className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium text-white/60 hover:text-white hover:bg-white/5 w-full transition-colors">
-            <LogOut size={18} /> Logout
+            <LogOut size={18} /> تسجيل الخروج
           </button>
         </div>
       </aside>
@@ -79,7 +79,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <Menu size={20} />
           </button>
           <div className="flex-1" />
-          <Link href="/" className="text-white/60 hover:text-white text-sm">View Store &rarr;</Link>
+          <Link href="/" target="_blank" className="flex items-center gap-2 text-white/60 hover:text-white text-sm">
+            <ExternalLink size={16} />
+            عرض المتجر
+          </Link>
         </header>
         <main className="flex-1 p-4 lg:p-8">{children}</main>
       </div>
