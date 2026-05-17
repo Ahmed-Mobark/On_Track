@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="600" height="600" viewBox="0 0 600 600" xmlns="http://www.w3.org/2000/svg">
+  <title>ON TRACK – OT Icon Mark</title>
+  <desc>ON TRACK OT monogram icon mark – transparent background, suitable for embroidery, app icon, embossing</desc>
+
+  <!-- Outer ring - black -->
+  <circle cx="300" cy="300" r="260" fill="none" stroke="#0A0A0A" stroke-width="28"/>
+
+  <!-- Neon arc (partial ring = motion/track) -->
+  <!-- Arc spans approx 120deg at top-right -->
+  <circle cx="300" cy="300" r="260" fill="none" stroke="#B5F23D" stroke-width="28"
+    stroke-dasharray="327 1306"
+    stroke-dashoffset="-245"
+    stroke-linecap="round"/>
+
+  <!-- T crossbar -->
+  <rect x="220" y="188" width="160" height="28" rx="6" fill="#0A0A0A"/>
+  <!-- T vertical stem -->
+  <rect x="286" y="216" width="28" height="196" rx="6" fill="#0A0A0A"/>
+
+  <!-- Speed slash (small, inside ring on left) -->
+  <polygon points="192,230 214,230 170,370 148,370" fill="#0A0A0A"/>
+</svg>

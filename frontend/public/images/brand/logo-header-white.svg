@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="160" height="48" viewBox="0 0 160 48" xmlns="http://www.w3.org/2000/svg">
+  <title>ON TRACK</title>
+  <!-- Speed slash icon -->
+  <polygon points="8,4 14,4 6,44 0,44" fill="#FFFFFF"/>
+  <polygon points="16,4 22,4 14,44 8,44" fill="#FFFFFF"/>
+  <polygon points="24,4 30,4 22,44 16,44" fill="#FFFFFF"/>
+  <!-- T stem from slashes -->
+  <rect x="28" y="4" width="14" height="4" rx="1" fill="#FFFFFF"/>
+  <rect x="33" y="8" width="4" height="36" rx="1" fill="#FFFFFF"/>
+  <!-- ON TRACK text -->
+  <text x="52" y="32"
+    font-family="'Arial Black','Helvetica Neue',Arial,sans-serif"
+    font-weight="900"
+    font-size="28"
+    letter-spacing="2"
+    fill="#FFFFFF">ON TRACK</text>
+</svg>

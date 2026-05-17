@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1200" height="480" viewBox="0 0 1200 480" xmlns="http://www.w3.org/2000/svg">
+  <title>ON TRACK – Primary Logo White</title>
+  <desc>ON TRACK premium sportswear brand – white version for dark backgrounds, transparent background</desc>
+
+  <!-- Speed slash accent -->
+  <polygon points="530,60 582,60 472,420 420,420" fill="#FFFFFF"/>
+
+  <!-- ON -->
+  <text x="120" y="310"
+    font-family="'Arial Black','Helvetica Neue',Helvetica,Arial,sans-serif"
+    font-weight="900"
+    font-size="260"
+    letter-spacing="-6"
+    fill="#FFFFFF">ON</text>
+
+  <!-- TRACK -->
+  <text x="640" y="310"
+    font-family="'Arial Black','Helvetica Neue',Helvetica,Arial,sans-serif"
+    font-weight="900"
+    font-size="260"
+    letter-spacing="-6"
+    fill="#FFFFFF">TRACK</text>
+
+  <!-- Divider -->
+  <line x1="120" y1="340" x2="1080" y2="340" stroke="#FFFFFF" stroke-width="2"/>
+
+  <!-- Tagline -->
+  <text x="600" y="420"
+    font-family="'Arial','Helvetica Neue',Helvetica,sans-serif"
+    font-weight="400"
+    font-size="36"
+    letter-spacing="14"
+    text-anchor="middle"
+    fill="#FFFFFF">PERFORMANCE WEAR</text>
+</svg>

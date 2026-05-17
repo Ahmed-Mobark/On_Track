@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1000" height="1000" viewBox="0 0 1000 1000" xmlns="http://www.w3.org/2000/svg">
+  <title>ON TRACK – Square Social Logo</title>
+  <desc>ON TRACK square social media and app icon version – transparent background, 1:1 ratio</desc>
+
+  <!-- Speed slash -->
+  <polygon points="160,120 210,120 160,600 110,600" fill="#0A0A0A"/>
+
+  <!-- ON stacked -->
+  <text x="500" y="400"
+    font-family="'Arial Black','Helvetica Neue',Helvetica,Arial,sans-serif"
+    font-weight="900"
+    font-size="300"
+    letter-spacing="-4"
+    text-anchor="middle"
+    fill="#0A0A0A">ON</text>
+
+  <!-- TRACK stacked -->
+  <text x="500" y="700"
+    font-family="'Arial Black','Helvetica Neue',Helvetica,Arial,sans-serif"
+    font-weight="900"
+    font-size="220"
+    letter-spacing="-2"
+    text-anchor="middle"
+    fill="#0A0A0A">TRACK</text>
+
+  <!-- Neon accent line between words -->
+  <rect x="200" y="730" width="600" height="8" rx="4" fill="#B5F23D"/>
+</svg>

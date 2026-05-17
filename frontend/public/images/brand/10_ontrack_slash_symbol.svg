@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="300" height="600" viewBox="0 0 300 600" xmlns="http://www.w3.org/2000/svg">
+  <title>ON TRACK – Speed Slash Symbol</title>
+  <desc>ON TRACK standalone speed slash brand symbol – transparent background, use for embroidery, hangtag, emboss</desc>
+
+  <!-- Main slash - black -->
+  <polygon points="170,20 210,20 130,580 90,580" fill="#0A0A0A"/>
+
+  <!-- Neon echo slash (offset for depth) -->
+  <polygon points="210,20 230,20 150,580 130,580" fill="#B5F23D"/>
+</svg>
