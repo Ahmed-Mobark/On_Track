@@ -52,15 +52,19 @@ class CartController extends Controller
         ]);
 
         $variant = ProductVariant::findOrFail($request->variant_id);
-        if ($variant->quantity < $request->quantity) {
-            return back()->withErrors(['quantity' => 'المخزون غير كافي']);
-        }
 
         $cart = session('cart', []);
         $key = $request->product_id . '_' . $request->variant_id;
+        $currentQty = isset($cart[$key]) ? $cart[$key]['quantity'] : 0;
+        $newTotal = $currentQty + $request->quantity;
+
+        if ($variant->quantity < $newTotal) {
+            $available = $variant->quantity - $currentQty;
+            return back()->withErrors(['quantity' => $available > 0 ? "متبقي {$available} قطع فقط" : 'المخزون غير كافي']);
+        }
 
         if (isset($cart[$key])) {
-            $cart[$key]['quantity'] += $request->quantity;
+            $cart[$key]['quantity'] = $newTotal;
         } else {
             $cart[$key] = [
                 'product_id' => $request->product_id,

@@ -45,6 +45,7 @@ Route::get('/checkout', [OrderController::class, 'checkout'])->name('checkout');
 Route::post('/checkout', [OrderController::class, 'store'])->name('orders.store');
 Route::get('/order/{order}/success', [OrderController::class, 'success'])->name('order.success');
 Route::get('/order/{order}/track', [OrderController::class, 'track'])->name('order.track');
+Route::get('/track/{orderNumber}', [OrderController::class, 'publicTrack'])->name('order.public-track');
 
 // Shipping cost API
 Route::get('/api/shipping-cost', [\App\Http\Controllers\Admin\ShippingController::class, 'getCost'])->name('api.shipping.cost');
@@ -98,7 +99,16 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     // Shipping rates
     Route::get('/shipping', [\App\Http\Controllers\Admin\ShippingController::class, 'index'])->name('shipping.index');
     Route::post('/shipping', [\App\Http\Controllers\Admin\ShippingController::class, 'store'])->name('shipping.store');
+    Route::put('/shipping/{shippingRate}', [\App\Http\Controllers\Admin\ShippingController::class, 'update'])->name('shipping.update');
     Route::delete('/shipping/{shippingRate}', [\App\Http\Controllers\Admin\ShippingController::class, 'destroy'])->name('shipping.destroy');
+    Route::post('/shipping/sync-bosta', [\App\Http\Controllers\Admin\ShippingController::class, 'syncFromBosta'])->name('shipping.sync-bosta');
+    Route::get('/shipping/bosta-cost', [\App\Http\Controllers\Admin\ShippingController::class, 'getBostaCost'])->name('shipping.bosta-cost');
+
+    // Banners
+    Route::get('/banners', [\App\Http\Controllers\Admin\BannerController::class, 'index'])->name('banners.index');
+    Route::post('/banners', [\App\Http\Controllers\Admin\BannerController::class, 'store'])->name('banners.store');
+    Route::put('/banners/{banner}', [\App\Http\Controllers\Admin\BannerController::class, 'update'])->name('banners.update');
+    Route::delete('/banners/{banner}', [\App\Http\Controllers\Admin\BannerController::class, 'destroy'])->name('banners.destroy');
 
     // Analytics
     Route::get('/analytics', [AnalyticsController::class, 'index'])->name('analytics.index');

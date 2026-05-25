@@ -40,4 +40,9 @@ return [
         'chat_id' => env('TELEGRAM_CHAT_ID'),
     ],
 
+    'bosta' => [
+        'api_key' => env('BOSTA_API_KEY'),
+        'base_url' => env('BOSTA_BASE_URL', 'https://app.bosta.co'),
+    ],
+
 ];

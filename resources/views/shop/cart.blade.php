@@ -20,7 +20,7 @@
                     {{-- Product image + link --}}
                     <a href="{{ route('product.show', $item['product']->slug) }}" class="w-20 h-20 bg-white/5 rounded-lg overflow-hidden flex-shrink-0 block">
                         @if($item['product']->images->first())
-                            <img src="{{ $item['product']->images->first()->url }}" class="w-full h-full object-cover">
+                            <img src="{{ $item['product']->images->first()->image_url }}" class="w-full h-full object-cover">
                         @endif
                     </a>
                     {{-- Product info + link --}}

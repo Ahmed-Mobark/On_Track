@@ -22,7 +22,7 @@ class SiteSetting extends Model
     {
         static::updateOrCreate(['key' => $key], ['value' => $value]);
         Cache::forget('site_settings');
-    }
+    }   
 
     public static function setMany(array $settings): void
     {

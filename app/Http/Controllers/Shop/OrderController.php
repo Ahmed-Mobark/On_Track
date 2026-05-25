@@ -78,15 +78,31 @@ class OrderController extends Controller
             return back()->withErrors(['cart' => 'السلة فارغة']);
         }
 
-        // Build items and calculate totals
+        // Build items, validate stock, and calculate totals
         $subtotal = 0;
         $orderItems = [];
         $variants = [];
+        $stockErrors = [];
 
-        foreach ($cart as $cartItem) {
+        foreach ($cart as $key => $cartItem) {
             $product = Product::find($cartItem['product_id']);
             $variant = ProductVariant::find($cartItem['variant_id']);
-            if (!$product || !$variant) continue;
+            if (!$product || !$variant) {
+                unset($cart[$key]);
+                session(['cart' => $cart]);
+                continue;
+            }
+
+            // Check stock at checkout time
+            if ($variant->quantity < $cartItem['quantity']) {
+                $name = $product->name_ar ?? $product->name;
+                if ($variant->quantity <= 0) {
+                    $stockErrors[] = "{$name} ({$variant->color}/{$variant->size}) نفذ من المخزون";
+                } else {
+                    $stockErrors[] = "{$name} ({$variant->color}/{$variant->size}) متبقي {$variant->quantity} فقط";
+                }
+                continue;
+            }
 
             $price = (float) ($variant->price ?? $product->base_price);
             $subtotal += $price * $cartItem['quantity'];
@@ -97,6 +113,14 @@ class OrderController extends Controller
                 'price' => $price,
             ];
             $variants[] = ['id' => $variant->id, 'quantity' => $cartItem['quantity']];
+        }
+
+        if (!empty($stockErrors)) {
+            return back()->withErrors(['stock' => implode('، ', $stockErrors)])->withInput();
+        }
+
+        if (empty($orderItems)) {
+            return back()->withErrors(['cart' => 'السلة فارغة أو المنتجات غير متاحة']);
         }
 
         // Coupon
@@ -176,10 +200,7 @@ class OrderController extends Controller
             $order->items()->create($item);
         }
 
-        // Decrement stock
-        foreach ($variants as $v) {
-            ProductVariant::where('id', $v['id'])->decrement('quantity', $v['quantity']);
-        }
+        // Stock will be decremented when order is CONFIRMED from dashboard
 
         // Clear session cart
         session()->forget('cart');
@@ -239,5 +260,14 @@ class OrderController extends Controller
 
         // Fallback: show order detail
         return redirect()->route('orders.show', $order)->with('info', 'لم يتم إضافة رابط تتبع بعد');
+    }
+
+    public function publicTrack(string $orderNumber)
+    {
+        $order = Order::where('order_number', $orderNumber)
+            ->with(['items.product', 'items.variant'])
+            ->firstOrFail();
+
+        return view('shop.track', compact('order'));
     }
 }

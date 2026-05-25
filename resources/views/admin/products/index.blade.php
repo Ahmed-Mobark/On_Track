@@ -29,15 +29,15 @@
         </thead>
         <tbody>
             @foreach($products as $product)
-            <tr class="border-b border-white/5 hover:bg-white/5">
+            <tr class="border-b border-white/5 hover:bg-white/5 cursor-pointer" onclick="if(!event.target.closest('form,a,button'))window.location='{{ route('admin.products.edit', $product) }}'">
                 <td class="px-4 py-3">
                     <div class="flex items-center gap-3">
                         <div class="w-10 h-10 bg-white/5 rounded-lg overflow-hidden">
                             @if($product->images->first())
-                                <img src="{{ $product->images->first()->url }}" class="w-full h-full object-cover">
+                                <img src="{{ $product->images->first()->image_url }}" class="w-full h-full object-cover">
                             @endif
                         </div>
-                        <span class="text-white">{{ $product->name }}</span>
+                        <span class="text-white">{{ $product->name_ar ?? $product->name }}</span>
                     </div>
                 </td>
                 <td class="px-4 py-3 text-white/60">{{ $product->sku }}</td>

@@ -3,10 +3,10 @@
 @endphp
 <div class="relative group">
     <a href="{{ route('product.show', $product->slug) }}">
-        <div class="bg-brand-dark rounded-xl overflow-hidden border border-white/5 hover:border-white/10 transition-colors">
+        <div class="bg-brand-dark rounded-xl overflow-hidden border border-white/5 hover:border-white/10 product-hover">
             <div class="aspect-square bg-white/5 relative overflow-hidden">
                 @if($product->images->first())
-                    <img src="{{ $product->images->first()->url }}" alt="{{ $product->name }}"
+                    <img src="{{ $product->images->first()->image_url }}" alt="{{ $product->name }}"
                          class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 {{ !$hasStock ? 'opacity-40 grayscale' : '' }}">
                 @else
                     <div class="w-full h-full flex items-center justify-center text-white/20">

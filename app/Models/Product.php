@@ -22,6 +22,7 @@ class Product extends Model
             'base_price' => 'decimal:2',
             'sale_price' => 'decimal:2',
             'avg_rating' => 'decimal:2',
+            'gender' => 'array',
             'is_active' => 'boolean',
             'is_featured' => 'boolean',
             'is_best_seller' => 'boolean',

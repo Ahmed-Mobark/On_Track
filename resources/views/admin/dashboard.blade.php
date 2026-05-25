@@ -32,14 +32,14 @@
         </div>
         <div class="p-4 space-y-3">
             @forelse($bestSelling as $i => $item)
-                <div class="flex items-center gap-3">
+                <a href="{{ route('admin.products.edit', $item->product) }}" class="flex items-center gap-3 hover:bg-white/5 rounded-lg px-2 py-1 -mx-2 transition-colors">
                     <span class="text-white/20 font-bold text-lg w-6 text-center">{{ $i + 1 }}</span>
                     <div class="flex-1 min-w-0">
                         <p class="text-white text-sm font-medium truncate">{{ $item->product->name_ar ?? $item->product->name }}</p>
                         <p class="text-white/40 text-xs">{{ $item->total_sold }} قطعة</p>
                     </div>
                     <span class="text-green-400 text-sm font-bold">{{ number_format($item->total_revenue) }} ج.م</span>
-                </div>
+                </a>
             @empty
                 <p class="text-white/30 text-sm text-center py-4">لا توجد مبيعات بعد</p>
             @endforelse
@@ -53,7 +53,7 @@
         </div>
         <div class="p-4 space-y-3">
             @forelse($mostWishlisted as $i => $item)
-                <div class="flex items-center gap-3">
+                <a href="{{ route('admin.products.edit', $item->product) }}" class="flex items-center gap-3 hover:bg-white/5 rounded-lg px-2 py-1 -mx-2 transition-colors">
                     <span class="text-white/20 font-bold text-lg w-6 text-center">{{ $i + 1 }}</span>
                     <div class="flex-1 min-w-0">
                         <p class="text-white text-sm font-medium truncate">{{ $item->product->name_ar ?? $item->product->name }}</p>
@@ -62,7 +62,7 @@
                         <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
                         <span class="text-sm font-bold">{{ $item->wishlist_count }}</span>
                     </div>
-                </div>
+                </a>
             @empty
                 <p class="text-white/30 text-sm text-center py-4">لا توجد عناصر في المفضلة بعد</p>
             @endforelse

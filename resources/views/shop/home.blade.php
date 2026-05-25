@@ -3,69 +3,62 @@
 
 @push('styles')
 <style>
-    /* Hero Animations */
+    /* Hero Animations — fast & crisp */
     @keyframes fadeInUp {
-        from { opacity: 0; transform: translateY(40px); }
+        from { opacity: 0; transform: translateY(20px); }
         to { opacity: 1; transform: translateY(0); }
     }
     @keyframes fadeInLeft {
-        from { opacity: 0; transform: translateX(-40px); }
+        from { opacity: 0; transform: translateX(-20px); }
         to { opacity: 1; transform: translateX(0); }
     }
     @keyframes fadeInRight {
-        from { opacity: 0; transform: translateX(40px); }
+        from { opacity: 0; transform: translateX(20px); }
         to { opacity: 1; transform: translateX(0); }
     }
     @keyframes scaleIn {
-        from { opacity: 0; transform: scale(0.8); }
+        from { opacity: 0; transform: scale(0.94); }
         to { opacity: 1; transform: scale(1); }
     }
     @keyframes slideDown {
-        from { opacity: 0; transform: translateY(-30px); }
+        from { opacity: 0; transform: translateY(-12px); }
         to { opacity: 1; transform: translateY(0); }
     }
     @keyframes pulse-glow {
-        0%, 100% { box-shadow: 0 0 20px rgba(230, 57, 70, 0.3); }
-        50% { box-shadow: 0 0 40px rgba(230, 57, 70, 0.6); }
+        0%, 100% { box-shadow: 0 0 15px rgba(230, 57, 70, 0.2); }
+        50% { box-shadow: 0 0 30px rgba(230, 57, 70, 0.4); }
     }
     @keyframes line-expand {
         from { width: 0; }
         to { width: 100%; }
     }
     @keyframes float {
-        0%, 100% { transform: translateY(0px); }
-        50% { transform: translateY(-10px); }
-    }
-    @keyframes grain {
-        0%, 100% { transform: translate(0, 0); }
-        10% { transform: translate(-5%, -10%); }
-        30% { transform: translate(3%, -15%); }
-        50% { transform: translate(-10%, 5%); }
-        70% { transform: translate(8%, -5%); }
-        90% { transform: translate(-3%, 10%); }
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-6px); }
     }
 
-    .hero-logo { animation: scaleIn 1s ease-out 0.2s both; }
-    .hero-tagline { animation: fadeInUp 0.8s ease-out 0.6s both; }
-    .hero-subtitle { animation: fadeInUp 0.8s ease-out 0.9s both; }
-    .hero-cta { animation: fadeInUp 0.8s ease-out 1.2s both; }
-    .hero-line { animation: line-expand 1.5s ease-out 0.5s both; }
-    .hero-badge { animation: slideDown 0.6s ease-out 1.5s both; }
-    .hero-stat { animation: fadeInUp 0.6s ease-out both; }
+    /* Snappy spring easing — cubic-bezier(0.16, 1, 0.3, 1) */
+    .hero-logo { animation: scaleIn 0.5s cubic-bezier(0.16,1,0.3,1) 0.05s both; }
+    .hero-tagline { animation: fadeInUp 0.45s cubic-bezier(0.16,1,0.3,1) 0.15s both; }
+    .hero-subtitle { animation: fadeInUp 0.45s cubic-bezier(0.16,1,0.3,1) 0.25s both; }
+    .hero-cta { animation: fadeInUp 0.45s cubic-bezier(0.16,1,0.3,1) 0.35s both; }
+    .hero-line { animation: line-expand 0.7s cubic-bezier(0.16,1,0.3,1) 0.2s both; }
+    .hero-badge { animation: slideDown 0.35s cubic-bezier(0.16,1,0.3,1) 0.45s both; }
+    .hero-stat { animation: fadeInUp 0.35s cubic-bezier(0.16,1,0.3,1) both; }
 
     .hero-grain::before {
         content: '';
         position: absolute;
         inset: -50%;
-        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
-        animation: grain 8s steps(10) infinite;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.02'/%3E%3C/svg%3E");
         pointer-events: none;
     }
 
+    /* Sections — fast reveal on scroll */
     .section-reveal {
         opacity: 0;
-        transform: translateY(30px);
-        transition: all 0.8s ease-out;
+        transform: translateY(16px);
+        transition: opacity 0.4s cubic-bezier(0.16,1,0.3,1), transform 0.4s cubic-bezier(0.16,1,0.3,1);
     }
     .section-reveal.visible {
         opacity: 1;
@@ -180,6 +173,53 @@
         <svg class="w-5 h-5 text-white/20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/></svg>
     </div>
 </section>
+
+{{-- OFFERS SLIDER --}}
+@if($banners->count())
+<section class="py-10 section-reveal">
+    <div class="max-w-7xl mx-auto px-4">
+        <div class="relative overflow-hidden rounded-2xl" id="offers-slider">
+            <div class="flex transition-transform duration-500 ease-out" id="offers-track" style="width:{{ $banners->count() * 100 }}%">
+                @foreach($banners as $banner)
+                    <div style="width:{{ 100 / $banners->count() }}%">
+                        <a href="{{ $banner->link ?? '#' }}" class="block relative aspect-[2.4/1] overflow-hidden rounded-2xl">
+                            <img src="{{ asset('storage/' . $banner->image) }}" alt="{{ $banner->title }}" class="w-full h-full object-cover">
+                            @if($banner->title || $banner->button_text)
+                                <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent flex items-end">
+                                    <div class="p-6 md:p-10">
+                                        @if($banner->title)
+                                            <h3 class="text-white text-xl md:text-3xl font-bold mb-2">{{ $banner->title }}</h3>
+                                        @endif
+                                        @if($banner->subtitle)
+                                            <p class="text-white/60 text-sm md:text-base mb-4">{{ $banner->subtitle }}</p>
+                                        @endif
+                                        @if($banner->button_text)
+                                            <span class="inline-block bg-brand-red text-white px-6 py-2 rounded-lg text-sm font-bold">{{ $banner->button_text }}</span>
+                                        @endif
+                                    </div>
+                                </div>
+                            @endif
+                        </a>
+                    </div>
+                @endforeach
+            </div>
+            @if($banners->count() > 1)
+                <button onclick="slideOffers(-1)" class="absolute top-1/2 right-3 -translate-y-1/2 w-10 h-10 rounded-full bg-black/50 text-white flex items-center justify-center hover:bg-black/70 transition-colors z-10">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                </button>
+                <button onclick="slideOffers(1)" class="absolute top-1/2 left-3 -translate-y-1/2 w-10 h-10 rounded-full bg-black/50 text-white flex items-center justify-center hover:bg-black/70 transition-colors z-10">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                </button>
+                <div class="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2 z-10">
+                    @foreach($banners as $i => $b)
+                        <button onclick="goToSlide({{ $i }})" class="offer-dot w-2 h-2 rounded-full {{ $i === 0 ? 'bg-white' : 'bg-white/40' }} transition-colors"></button>
+                    @endforeach
+                </div>
+            @endif
+        </div>
+    </div>
+</section>
+@endif
 
 {{-- SECTIONS / TAB BAR --}}
 @if($categories->count())
@@ -348,21 +388,6 @@
     </div>
 </section>
 
-{{-- NEWSLETTER --}}
-<section class="py-20 section-reveal">
-    <div class="max-w-3xl mx-auto px-4 text-center">
-        <img src="/images/brand/04_ontrack_icon_mark_OT.svg" alt="" class="w-12 h-12 mx-auto mb-6 opacity-20">
-        <h2 class="text-2xl font-black text-white mb-3">انضم لعائلة <span class="text-brand-red">On Track</span></h2>
-        <p class="text-white/40 text-sm mb-8">اشترك واحصل على أحدث العروض والمنتجات الجديدة</p>
-        <form class="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
-            <input type="email" placeholder="بريدك الإلكتروني" dir="ltr"
-                class="flex-1 bg-white/5 border border-white/10 rounded-xl px-5 py-3 text-white placeholder:text-white/30 focus:outline-none focus:border-brand-red">
-            <button type="submit" class="bg-brand-red hover:bg-brand-red-dark text-white font-bold px-8 py-3 rounded-xl transition-colors whitespace-nowrap">
-                اشترك
-            </button>
-        </form>
-    </div>
-</section>
 @endsection
 
 @push('scripts')
@@ -374,8 +399,24 @@
                 entry.target.classList.add('visible');
             }
         });
-    }, { threshold: 0.1 });
+    }, { threshold: 0.05, rootMargin: '0px 0px -40px 0px' });
     document.querySelectorAll('.section-reveal').forEach(el => observer.observe(el));
+
+    // Offers slider
+    let currentSlide = 0;
+    const totalSlides = {{ $banners->count() ?? 0 }};
+    const track = document.getElementById('offers-track');
+    const dots = document.querySelectorAll('.offer-dot');
+
+    function goToSlide(i) {
+        currentSlide = i;
+        if (track) track.style.transform = `translateX(${i * (100 / totalSlides)}%)`;
+        dots.forEach((d, idx) => d.className = 'offer-dot w-2 h-2 rounded-full transition-colors ' + (idx === i ? 'bg-white' : 'bg-white/40'));
+    }
+    function slideOffers(dir) {
+        goToSlide((currentSlide - dir + totalSlides) % totalSlides);
+    }
+    if (totalSlides > 1) setInterval(() => slideOffers(-1), 5000);
 
     // Category tabs
     function switchTab(categoryId) {

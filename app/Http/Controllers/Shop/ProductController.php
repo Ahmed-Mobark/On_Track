@@ -29,7 +29,7 @@ class ProductController extends Controller
         }
 
         if ($request->gender) {
-            $query->where('gender', $request->gender);
+            $query->where('gender', 'like', '%"' . $request->gender . '"%');
         }
 
         if ($request->min_price) {
@@ -74,7 +74,7 @@ class ProductController extends Controller
 
     public function show(string $slug)
     {
-        $product = Product::where('slug', $slug)->with([
+        $product = Product::active()->where('slug', $slug)->with([
             'images',
             'categories',
             'variants',

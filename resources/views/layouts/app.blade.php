@@ -23,6 +23,22 @@
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Cairo', sans-serif; }
+
+        /* Global smooth transitions */
+        *, *::before, *::after { -webkit-tap-highlight-color: transparent; }
+        a, button { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+        img { transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease; }
+
+        /* Smooth page load */
+        body { animation: pageIn 0.3s ease-out; }
+        @keyframes pageIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* Snappy hover on cards */
+        .product-hover { transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s ease; }
+        .product-hover:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(0,0,0,0.3); }
+
+        /* Smooth scroll */
+        html { scroll-behavior: smooth; }
     </style>
     @stack('styles')
 </head>

@@ -18,7 +18,7 @@
                 </button>
                 @endauth
                 @if($product->images->count())
-                    <img src="{{ $product->images->first()->url }}" alt="{{ $product->name }}"
+                    <img src="{{ $product->images->first()->image_url }}" alt="{{ $product->name }}"
                          class="w-full h-full object-cover" id="main-image">
                 @else
                     <div class="w-full h-full flex items-center justify-center text-white/20" id="main-image-placeholder">
@@ -30,10 +30,10 @@
             {{-- Thumbnails --}}
             <div class="grid grid-cols-5 gap-2" id="thumbnails">
                 @foreach($product->images as $image)
-                    <button onclick="document.getElementById('main-image').src='{{ $image->url }}'"
+                    <button onclick="document.getElementById('main-image').src='{{ $image->image_url }}'"
                         class="thumb-btn aspect-square bg-brand-dark rounded-lg overflow-hidden border border-white/10 hover:border-brand-red transition-colors"
-                        data-url="{{ $image->url }}">
-                        <img src="{{ $image->url }}" alt="" class="w-full h-full object-cover">
+                        data-url="{{ $image->image_url }}">
+                        <img src="{{ $image->image_url }}" alt="" class="w-full h-full object-cover">
                     </button>
                 @endforeach
             </div>
@@ -314,14 +314,27 @@
         renderColors(allColors);
         renderSizes(availableSizes.length ? availableSizes : allSizes);
 
-        // Update images for this color
-        const colorImgs = images.filter(img => img.alt && img.alt.toLowerCase().includes(color.toLowerCase()));
+        // Update images for this color (fallback to all images if none for this color)
+        let colorImgs = images.filter(img => img.color_name === color);
+        if (colorImgs.length === 0) colorImgs = images;
         if (colorImgs.length > 0) {
             const mainImg = document.getElementById('main-image');
-            mainImg.src = colorImgs[0].url;
+            mainImg.src = colorImgs[0].image_url;
             mainImg.classList.remove('hidden');
             const ph = document.getElementById('main-image-placeholder');
             if (ph) ph.classList.add('hidden');
+
+            // Update thumbnails
+            const thumbs = document.getElementById('thumbnails');
+            thumbs.innerHTML = '';
+            colorImgs.forEach(img => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'thumb-btn aspect-square bg-brand-dark rounded-lg overflow-hidden border border-white/10 hover:border-brand-red transition-colors';
+                btn.onclick = () => { mainImg.src = img.image_url; };
+                btn.innerHTML = `<img src="${img.image_url}" alt="" class="w-full h-full object-cover">`;
+                thumbs.appendChild(btn);
+            });
         }
 
         updateVariant();
