@@ -50,6 +50,21 @@ Route::get('/track/{orderNumber}', [OrderController::class, 'publicTrack'])->nam
 // Shipping cost API
 Route::get('/api/shipping-cost', [\App\Http\Controllers\Admin\ShippingController::class, 'getCost'])->name('api.shipping.cost');
 
+// Coupon validation API
+Route::post('/api/coupon/validate', function (\Illuminate\Http\Request $request) {
+    $coupon = \App\Models\Coupon::where('code', $request->code)->first();
+    if (!$coupon) return response()->json(['valid' => false, 'error' => 'كود الخصم غير صحيح']);
+    $subtotal = (float) ($request->subtotal ?? 0);
+    if (!$coupon->isValid($subtotal)) {
+        if ($coupon->min_order_value && $subtotal < $coupon->min_order_value)
+            return response()->json(['valid' => false, 'error' => 'الحد الأدنى للطلب ' . number_format($coupon->min_order_value) . ' ج.م']);
+        return response()->json(['valid' => false, 'error' => 'كود الخصم منتهي أو غير صالح']);
+    }
+    $discount = $coupon->calculateDiscount($subtotal);
+    $label = $coupon->type === 'PERCENTAGE' ? $coupon->value . '%' : number_format($discount) . ' ج.م';
+    return response()->json(['valid' => true, 'discount' => $discount, 'label' => $label, 'type' => $coupon->type]);
+})->name('api.coupon.validate');
+
 // Contact form
 Route::post('/contact', [ContactController::class, 'store'])->name('contact.store');
 

@@ -37,8 +37,8 @@ class CartController extends Controller
             ];
         }
 
-        $shippingCost = $subtotal > 500 ? 0 : 50;
-        $total = $subtotal + $shippingCost;
+        $shippingCost = $subtotal >= 2000 ? 0 : null; // null = not yet determined
+        $total = $subtotal + ($shippingCost ?? 0);
 
         return view('shop.cart', compact('items', 'subtotal', 'shippingCost', 'total'));
     }

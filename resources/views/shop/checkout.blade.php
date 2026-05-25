@@ -162,8 +162,21 @@
                 {{-- Coupon --}}
                 <div class="bg-brand-dark rounded-xl p-6">
                     <h2 class="text-lg font-bold text-white mb-4">كوبون خصم</h2>
-                    <input type="text" name="coupon_code" placeholder="أدخل كود الخصم"
-                        class="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white text-sm placeholder:text-white/30 focus:outline-none focus:border-brand-red" dir="ltr">
+                    <div class="flex gap-2">
+                        <input type="text" name="coupon_code" id="coupon-input" placeholder="أدخل كود الخصم"
+                            class="flex-1 bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white text-sm placeholder:text-white/30 focus:outline-none focus:border-brand-red text-right">
+                        <button type="button" id="apply-coupon-btn" onclick="applyCoupon()"
+                            class="bg-brand-red hover:bg-brand-red-dark text-white px-5 py-2.5 rounded-lg text-sm font-medium transition-colors whitespace-nowrap">
+                            تطبيق
+                        </button>
+                    </div>
+                    <div id="coupon-result" class="hidden mt-3 flex items-center justify-between bg-green-500/10 border border-green-500/20 rounded-lg px-4 py-2.5">
+                        <div class="flex items-center gap-2">
+                            <svg class="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                            <span class="text-green-400 text-sm font-medium" id="coupon-label"></span>
+                        </div>
+                        <button type="button" onclick="removeCoupon()" class="text-white/40 hover:text-white text-xs">إزالة</button>
+                    </div>
                 </div>
 
                 {{-- Notes --}}
@@ -202,7 +215,11 @@
                     </div>
                     <div class="flex justify-between text-white/60">
                         <span>الشحن</span>
-                        <span id="shipping-cost-display">{{ number_format($shippingCost) }} ج.م</span>
+                        <span id="shipping-cost-display">{{ $shippingCost > 0 ? number_format($shippingCost) . ' ج.م' : 'يحسب بعد اختيار المحافظة' }}</span>
+                    </div>
+                    <div id="discount-row" class="hidden flex justify-between text-green-400">
+                        <span>الخصم</span>
+                        <span id="discount-display">0 ج.م</span>
                     </div>
                     <div class="flex justify-between text-white font-bold text-lg pt-2 border-t border-white/10">
                         <span>الإجمالي</span>
@@ -417,6 +434,68 @@ function saveNewAddress() {
     .catch(function() {
         showToast('حدث خطأ، حاول مرة أخرى');
     });
+}
+// Coupon
+let appliedDiscount = 0;
+
+function applyCoupon() {
+    const code = document.getElementById('coupon-input').value.trim();
+    if (!code) { showToast('أدخل كود الخصم'); return; }
+
+    const btn = document.getElementById('apply-coupon-btn');
+    btn.disabled = true;
+    btn.textContent = 'جاري التحقق...';
+
+    const fd = new FormData();
+    fd.append('code', code);
+    fd.append('subtotal', subtotal);
+    fd.append('_token', document.querySelector('meta[name="csrf-token"]').content);
+
+    fetch('{{ route("api.coupon.validate") }}', {
+        method: 'POST',
+        headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+        body: fd
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.valid) {
+            appliedDiscount = data.discount;
+            document.getElementById('coupon-result').classList.remove('hidden');
+            document.getElementById('coupon-label').textContent = 'خصم ' + data.label;
+            document.getElementById('coupon-input').readOnly = true;
+            document.getElementById('coupon-input').style.opacity = '0.5';
+            btn.classList.add('hidden');
+
+            // Update summary
+            document.getElementById('discount-row').classList.remove('hidden');
+            document.getElementById('discount-row').style.display = 'flex';
+            document.getElementById('discount-display').textContent = '-' + data.discount.toLocaleString() + ' ج.م';
+            updateTotal();
+        } else {
+            showToast(data.error || 'كود الخصم غير صحيح');
+        }
+    })
+    .catch(() => showToast('حدث خطأ، حاول مرة أخرى'))
+    .finally(() => { btn.disabled = false; btn.textContent = 'تطبيق'; });
+}
+
+function removeCoupon() {
+    appliedDiscount = 0;
+    document.getElementById('coupon-result').classList.add('hidden');
+    document.getElementById('coupon-input').readOnly = false;
+    document.getElementById('coupon-input').style.opacity = '1';
+    document.getElementById('coupon-input').value = '';
+    document.getElementById('apply-coupon-btn').classList.remove('hidden');
+    document.getElementById('discount-row').classList.add('hidden');
+    document.getElementById('discount-row').style.display = 'none';
+    updateTotal();
+}
+
+function updateTotal() {
+    const shipText = document.getElementById('shipping-cost-display').textContent;
+    const shipCost = parseInt(shipText.replace(/[^0-9]/g, '')) || 0;
+    const total = subtotal - appliedDiscount + shipCost;
+    document.getElementById('total-display').textContent = total.toLocaleString() + ' ج.م';
 }
 </script>
 @endpush

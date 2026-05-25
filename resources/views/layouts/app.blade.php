@@ -144,8 +144,8 @@
                 <div>
                     <h3 class="text-white font-semibold mb-3">خدمة العملاء</h3>
                     <ul class="space-y-2 text-sm text-white/40">
-                        <li>شحن مجاني فوق 500 ج.م</li>
-                        <li>إرجاع خلال 14 يوم</li>
+                        <li>شحن مجاني للطلبات فوق 2,000 ج.م</li>
+                        <li>منتجات أصلية 100%</li>
                         <li>دفع آمن 100%</li>
                     </ul>
                 </div>

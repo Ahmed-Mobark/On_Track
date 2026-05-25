@@ -41,11 +41,19 @@ class OrderController extends Controller
             ];
         }
 
-        $shippingCost = $subtotal > 500 ? 0 : 50;
-        $total = $subtotal + $shippingCost;
-
+        // Default shipping — will be recalculated when user picks governorate
+        $shippingCost = 0;
         $addresses = auth()->check() ? auth()->user()->addresses : collect();
         $isGuest = !auth()->check();
+
+        // If logged in with a default address, use its shipping cost
+        if (!$isGuest && $addresses->count()) {
+            $defaultAddr = $addresses->first();
+            $shippingCost = \App\Models\ShippingRate::getCost($defaultAddr->governorate, $defaultAddr->city);
+            if ($subtotal >= 2000) $shippingCost = 0;
+        }
+
+        $total = $subtotal + $shippingCost;
 
         return view('shop.checkout', compact('items', 'addresses', 'subtotal', 'shippingCost', 'total', 'isGuest'));
     }
