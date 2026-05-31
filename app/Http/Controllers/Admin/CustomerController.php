@@ -24,4 +24,15 @@ class CustomerController extends Controller
         $customers = $query->latest()->paginate(20);
         return view('admin.customers.index', compact('customers'));
     }
+
+    public function show(User $user)
+    {
+        $user->loadCount('orders');
+        $orders = $user->orders()->with('items.product')->latest()->take(10)->get();
+        $wallet = $user->getOrCreateWallet();
+        $transactions = $wallet->transactions()->take(20)->get();
+        $totalSpent = $user->orders()->whereIn('status', ['CONFIRMED', 'PROCESSING', 'SHIPPED', 'DELIVERED'])->sum('total');
+
+        return view('admin.customers.show', compact('user', 'orders', 'wallet', 'transactions', 'totalSpent'));
+    }
 }

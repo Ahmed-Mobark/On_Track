@@ -1,17 +1,37 @@
 @extends('layouts.app')
 @section('title', 'تم الطلب بنجاح')
 
+@push('styles')
+<style>
+    @keyframes checkDraw { from { stroke-dashoffset: 24; } to { stroke-dashoffset: 0; } }
+    @keyframes ringPulse {
+        0% { transform: scale(0.8); opacity: 0; }
+        50% { transform: scale(1); opacity: 1; }
+        100% { transform: scale(1); opacity: 1; }
+    }
+    @keyframes confettiIn { from { opacity: 0; transform: translateY(20px) scale(0.9); } to { opacity: 1; transform: translateY(0) scale(1); } }
+    .success-ring { animation: ringPulse 0.5s cubic-bezier(0.34,1.56,0.64,1) 0.1s both; }
+    .success-check svg path { stroke-dasharray: 24; animation: checkDraw 0.4s ease-out 0.4s both; }
+    .success-title { animation: confettiIn 0.4s cubic-bezier(0.34,1.56,0.64,1) 0.5s both; }
+    .success-sub { animation: confettiIn 0.4s ease-out 0.6s both; }
+    .success-card { animation: confettiIn 0.4s ease-out 0.7s both; }
+    .success-actions { animation: confettiIn 0.4s ease-out 0.8s both; }
+</style>
+@endpush
+
 @section('content')
-<div class="max-w-2xl mx-auto px-4 py-16 text-center">
-    <div class="bg-green-500/10 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
-        <svg class="w-10 h-10 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-        </svg>
+<div class="max-w-2xl mx-auto px-4 sm:px-6 py-16 sm:py-20 text-center">
+    <div class="success-ring bg-green-500/10 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-8 ring-4 ring-green-500/5">
+        <div class="success-check bg-green-500/20 w-16 h-16 rounded-full flex items-center justify-center">
+            <svg class="w-8 h-8 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+            </svg>
+        </div>
     </div>
 
-    <h1 class="text-3xl font-bold text-white mb-3">تم تقديم طلبك بنجاح!</h1>
-    <p class="text-white/50 text-lg mb-2">رقم الطلب: <span class="text-white font-bold">{{ $order->order_number }}</span></p>
-    <p class="text-white/40 text-sm mb-8">هتوصلك رسالة تأكيد. شكراً لثقتك في On Track</p>
+    <h1 class="success-title text-3xl font-black text-white mb-3">تم تقديم طلبك بنجاح!</h1>
+    <p class="success-sub text-white/50 text-lg mb-2">رقم الطلب: <span class="text-white font-bold bg-white/5 px-3 py-1 rounded-lg">{{ $order->order_number }}</span></p>
+    <p class="success-sub text-white/35 text-sm mb-10">هتوصلك رسالة تأكيد. شكراً لثقتك في On Track</p>
 
     <div class="bg-brand-dark rounded-xl p-6 text-right mb-8">
         <h2 class="text-white font-bold mb-3">تفاصيل الطلب</h2>
@@ -29,6 +49,31 @@
             <span class="text-brand-red">{{ number_format($order->total) }} ج.م</span>
         </div>
     </div>
+
+    {{-- Payment Breakdown --}}
+    @if($order->deposit_amount)
+    <div class="bg-brand-dark rounded-xl p-6 text-right mb-8">
+        <h2 class="text-white font-bold mb-3">تفاصيل الدفع</h2>
+        <div class="space-y-2">
+            <div class="flex justify-between items-center py-2">
+                <span class="text-white/60 text-sm">{{ $order->payment_type === 'SHIPPING_ONLY' ? ($order->shipping_cost > 0 ? 'رسوم الشحن (مدفوع)' : 'عربون التأكيد (مدفوع)') : 'المبلغ الكامل (مدفوع)' }}</span>
+                <span class="text-green-400 font-bold">{{ number_format($order->deposit_amount) }} ج.م</span>
+            </div>
+            @if($order->payment_type === 'SHIPPING_ONLY')
+            <div class="flex justify-between items-center py-2 border-t border-white/5">
+                <span class="text-white/60 text-sm">المتبقي عند الاستلام</span>
+                <span class="text-white font-bold">{{ number_format($order->total - $order->deposit_amount) }} ج.م</span>
+            </div>
+            @endif
+        </div>
+        <div class="mt-3 pt-3 border-t border-white/10">
+            <p class="text-white/40 text-xs flex items-center gap-1">
+                <svg class="w-3.5 h-3.5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/></svg>
+                جاري التحقق من إثبات الدفع. هيتم تأكيد طلبك في أقرب وقت.
+            </p>
+        </div>
+    </div>
+    @endif
 
     <div class="flex flex-col sm:flex-row gap-3 justify-center">
         <a href="{{ route('shop') }}" class="bg-brand-red hover:bg-brand-red-dark text-white px-8 py-3 rounded-xl font-semibold transition-colors">

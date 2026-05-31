@@ -116,12 +116,158 @@
         </main>
     </div>
 
+    {{-- AI Assistant Chat Widget --}}
+    <div id="ai-chat-btn" onclick="toggleAiChat()"
+        style="position:fixed;bottom:24px;left:24px;z-index:60;width:56px;height:56px;background:#e63946;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 20px rgba(230,57,70,0.4);transition:all 0.3s;">
+        <svg id="ai-chat-icon" style="width:24px;height:24px;" fill="none" stroke="white" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
+        <svg id="ai-close-icon" style="width:24px;height:24px;display:none;" fill="none" stroke="white" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+    </div>
+
+    <div id="ai-chat-panel" style="display:none;position:fixed;bottom:92px;left:24px;z-index:60;width:380px;max-width:calc(100vw - 48px);background:#141414;border:1px solid rgba(255,255,255,0.1);border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,0.5);overflow:hidden;">
+        {{-- Header --}}
+        <div style="padding:16px 20px;border-bottom:1px solid rgba(255,255,255,0.1);display:flex;align-items:center;gap:10px;">
+            <div style="width:32px;height:32px;background:rgba(230,57,70,0.15);border-radius:50%;display:flex;align-items:center;justify-content:center;">
+                <svg style="width:16px;height:16px;" fill="none" stroke="#e63946" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+            </div>
+            <div>
+                <p style="color:white;font-size:14px;font-weight:700;margin:0;">مساعد ON TRACK</p>
+                <p style="color:rgba(255,255,255,0.4);font-size:11px;margin:0;">اسألني عن أي حاجة في السيستم</p>
+            </div>
+        </div>
+
+        {{-- Messages --}}
+        <div id="ai-messages" style="height:350px;overflow-y:auto;padding:16px 20px;display:flex;flex-direction:column;gap:12px;">
+            <div class="ai-msg bot">
+                <div style="background:rgba(255,255,255,0.05);border-radius:12px 12px 12px 4px;padding:10px 14px;max-width:90%;color:rgba(255,255,255,0.8);font-size:13px;line-height:1.6;">
+                    أهلاً! أنا مساعدك الذكي. اضغط على أي زرار أو اكتب سؤالك:
+                    <div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:5px;" id="quick-actions">
+                        <span onclick="askQuick('ملخص عام')" class="ai-quick-btn">ملخص عام</span>
+                        <span onclick="askQuick('الطلبات المعلقة')" class="ai-quick-btn">المعلقة</span>
+                        <span onclick="askQuick('اخر طلب')" class="ai-quick-btn">آخر طلب</span>
+                        <span onclick="askQuick('طلبات النهاردة')" class="ai-quick-btn">النهاردة</span>
+                        <span onclick="askQuick('الايرادات')" class="ai-quick-btn">الإيرادات</span>
+                        <span onclick="askQuick('في انتظار تاكيد الدفع')" class="ai-quick-btn">تأكيد دفع</span>
+                        <span onclick="askQuick('اكتر منتج مبيعا')" class="ai-quick-btn">أكتر منتج</span>
+                        <span onclick="askQuick('نفذ من المخزون')" class="ai-quick-btn">نفذ</span>
+                        <span onclick="askQuick('اكتر عميل اشتري')" class="ai-quick-btn">أكتر عميل</span>
+                    </div>
+                    <style>.ai-quick-btn{background:rgba(230,57,70,0.1);color:#e63946;padding:5px 12px;border-radius:20px;font-size:11px;cursor:pointer;border:1px solid rgba(230,57,70,0.2);transition:all 0.2s;display:inline-block;}.ai-quick-btn:hover{background:rgba(230,57,70,0.25);}</style>
+                </div>
+            </div>
+        </div>
+
+        {{-- Input --}}
+        <div style="padding:12px 16px;border-top:1px solid rgba(255,255,255,0.1);display:flex;gap:8px;">
+            <input type="text" id="ai-input" placeholder="اسأل سؤالك هنا..."
+                style="flex:1;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:10px 14px;color:white;font-size:13px;outline:none;font-family:'Cairo',sans-serif;"
+                onkeydown="if(event.key==='Enter')sendAiMessage()">
+            <button onclick="sendAiMessage()"
+                style="background:#e63946;border:none;border-radius:10px;padding:10px 16px;cursor:pointer;display:flex;align-items:center;justify-content:center;">
+                <svg style="width:18px;height:18px;transform:rotate(180deg);" fill="none" stroke="white" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+            </button>
+        </div>
+    </div>
+
     <script>
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar');
             const overlay = document.getElementById('sidebar-overlay');
             sidebar.classList.toggle('translate-x-full');
             overlay.classList.toggle('hidden');
+        }
+
+        function toggleAiChat() {
+            var panel = document.getElementById('ai-chat-panel');
+            var iconChat = document.getElementById('ai-chat-icon');
+            var iconClose = document.getElementById('ai-close-icon');
+            if (panel.style.display === 'none') {
+                panel.style.display = 'block';
+                iconChat.style.display = 'none';
+                iconClose.style.display = 'block';
+                document.getElementById('ai-input').focus();
+            } else {
+                panel.style.display = 'none';
+                iconChat.style.display = 'block';
+                iconClose.style.display = 'none';
+            }
+        }
+
+        function askQuick(q) {
+            document.getElementById('ai-input').value = q;
+            sendAiMessage();
+        }
+
+        function addMessage(text, isUser, actions) {
+            var container = document.getElementById('ai-messages');
+            var div = document.createElement('div');
+            div.className = 'ai-msg ' + (isUser ? 'user' : 'bot');
+
+            var bubble = document.createElement('div');
+            bubble.style.cssText = isUser
+                ? 'background:#e63946;border-radius:12px 12px 4px 12px;padding:10px 14px;max-width:85%;color:white;font-size:13px;line-height:1.6;margin-right:auto;'
+                : 'background:rgba(255,255,255,0.05);border-radius:12px 12px 12px 4px;padding:10px 14px;max-width:95%;color:rgba(255,255,255,0.8);font-size:13px;line-height:1.6;white-space:pre-line;';
+            bubble.textContent = text;
+
+            // Add action buttons
+            if (actions && actions.length > 0) {
+                var actionsDiv = document.createElement('div');
+                actionsDiv.style.cssText = 'margin-top:10px;display:flex;flex-wrap:wrap;gap:6px;';
+                actions.forEach(function(action) {
+                    var btn = document.createElement('a');
+                    btn.href = action.url;
+                    btn.textContent = action.label;
+                    if (action.target) btn.target = action.target;
+                    var bgColor = action.style === 'green' ? 'rgba(34,197,94,0.15)' : action.style === 'blue' ? 'rgba(59,130,246,0.15)' : 'rgba(230,57,70,0.15)';
+                    var txtColor = action.style === 'green' ? '#22c55e' : action.style === 'blue' ? '#3b82f6' : '#e63946';
+                    var borderColor = action.style === 'green' ? 'rgba(34,197,94,0.3)' : action.style === 'blue' ? 'rgba(59,130,246,0.3)' : 'rgba(230,57,70,0.3)';
+                    btn.style.cssText = 'background:' + bgColor + ';color:' + txtColor + ';padding:5px 12px;border-radius:8px;font-size:11px;text-decoration:none;border:1px solid ' + borderColor + ';font-weight:600;transition:all 0.2s;font-family:Cairo,sans-serif;';
+                    actionsDiv.appendChild(btn);
+                });
+                bubble.appendChild(actionsDiv);
+            }
+
+            div.appendChild(bubble);
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function sendAiMessage() {
+            var input = document.getElementById('ai-input');
+            var question = input.value.trim();
+            if (!question) return;
+
+            addMessage(question, true);
+            input.value = '';
+
+            var loadingId = 'loading-' + Date.now();
+            var container = document.getElementById('ai-messages');
+            var loadDiv = document.createElement('div');
+            loadDiv.id = loadingId;
+            loadDiv.innerHTML = '<div style="background:rgba(255,255,255,0.05);border-radius:12px;padding:10px 14px;color:rgba(255,255,255,0.4);font-size:13px;display:flex;align-items:center;gap:8px;"><span style="display:inline-block;width:6px;height:6px;background:#e63946;border-radius:50%;animation:pulse 1s infinite;"></span> جاري البحث...</div>';
+            container.appendChild(loadDiv);
+            container.scrollTop = container.scrollHeight;
+
+            fetch('{{ route("admin.ai-assistant") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({ question: question })
+            })
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                var el = document.getElementById(loadingId);
+                if (el) el.remove();
+                addMessage(data.answer || 'حدث خطأ', false, data.actions || null);
+            })
+            .catch(function() {
+                var el = document.getElementById(loadingId);
+                if (el) el.remove();
+                addMessage('حدث خطأ في الاتصال، حاول مرة أخرى', false);
+            });
         }
     </script>
     @stack('scripts')

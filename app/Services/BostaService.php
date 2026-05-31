@@ -39,7 +39,9 @@ class BostaService
             return "{$name} ({$item->variant->size}/{$item->variant->color}) x{$item->quantity}";
         })->implode(' | ');
 
-        $isCod = $order->payment_method === 'COD';
+        // Calculate COD: total minus everything already paid (deposit + wallet)
+        $alreadyPaid = (float) ($order->deposit_amount ?? 0) + (float) ($order->wallet_used ?? 0);
+        $codAmount = max(0, (float) $order->total - $alreadyPaid);
 
         $dropOffAddress = [
             'city' => $district['cityName'] ?? $address->governorate,
@@ -65,7 +67,7 @@ class BostaService
                 ],
             ],
             'notes' => $order->notes ?? '',
-            'cod' => $isCod ? (float) $order->total : 0,
+            'cod' => $codAmount,
             'dropOffAddress' => $dropOffAddress,
             'receiver' => [
                 'firstName' => $address->first_name ?? $order->user?->first_name ?? '',

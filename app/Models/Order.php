@@ -11,7 +11,8 @@ class Order extends Model
 
     protected $fillable = [
         'order_number', 'user_id', 'address_id', 'status', 'payment_method',
-        'payment_status', 'subtotal', 'shipping_cost', 'discount', 'total',
+        'payment_type', 'payment_status', 'payment_proof', 'deposit_amount',
+        'wallet_used', 'subtotal', 'shipping_cost', 'discount', 'total',
         'coupon_id', 'notes', 'shipping_company', 'tracking_number', 'shipment_status',
     ];
 
@@ -22,12 +23,19 @@ class Order extends Model
             'shipping_cost' => 'decimal:2',
             'discount' => 'decimal:2',
             'total' => 'decimal:2',
+            'deposit_amount' => 'decimal:2',
+            'wallet_used' => 'decimal:2',
         ];
     }
 
     public static function generateOrderNumber(): string
     {
-        return 'OT-' . time() . '-' . strtoupper(substr(uniqid(), -5));
+        $last = static::orderBy('created_at', 'desc')->value('order_number');
+        $nextNum = 1001;
+        if ($last && preg_match('/OT-(\d+)/', $last, $m)) {
+            $nextNum = (int) $m[1] + 1;
+        }
+        return 'OT-' . $nextNum;
     }
 
     public function user() { return $this->belongsTo(User::class); }

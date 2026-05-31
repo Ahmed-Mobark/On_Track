@@ -19,6 +19,7 @@
     <div class="bg-brand-dark rounded-xl p-4 border border-white/5">
         <p class="text-white/40 text-xs">الدفع</p>
         <p class="text-white font-medium">{{ $order->payment_method }}</p>
+        <p class="text-white/50 text-xs">{{ $order->payment_type === 'SHIPPING_ONLY' ? 'شحن فقط' : ($order->payment_type === 'FULL' ? 'دفع كامل' : '') }}</p>
         <p class="text-xs {{ $order->payment_status === 'PAID' ? 'text-green-400' : 'text-yellow-400' }}">{{ $order->payment_status }}</p>
     </div>
     <div class="bg-brand-dark rounded-xl p-4 border border-white/5">
@@ -26,6 +27,83 @@
         <p class="text-white">{{ $order->created_at->format('Y/m/d H:i') }}</p>
     </div>
 </div>
+
+{{-- Payment Proof & Verification --}}
+@if($order->payment_proof)
+<div class="bg-brand-dark rounded-xl p-6 mb-6 border border-white/5">
+    <div class="flex items-center justify-between mb-4">
+        <h2 class="text-white font-bold">إثبات الدفع</h2>
+        @if($order->payment_status === 'PENDING')
+            <span class="bg-yellow-500/10 text-yellow-400 text-xs font-bold px-3 py-1 rounded-full">في انتظار التحقق</span>
+        @elseif($order->payment_status === 'PAID')
+            <span class="bg-green-500/10 text-green-400 text-xs font-bold px-3 py-1 rounded-full">تم التحقق</span>
+        @endif
+    </div>
+
+    <div class="grid md:grid-cols-2 gap-4">
+        <div>
+            <a href="{{ asset('storage/' . $order->payment_proof) }}" target="_blank">
+                <img src="{{ asset('storage/' . $order->payment_proof) }}" alt="Payment Proof" class="w-full max-w-sm rounded-lg border border-white/10 hover:border-brand-red transition-colors">
+            </a>
+        </div>
+        <div class="space-y-3">
+            @php
+                $expectedAmount = $order->deposit_amount ?? 0;
+                $walletUsed = $order->wallet_used ?? 0;
+                $totalPaid = $expectedAmount + $walletUsed;
+                if ($order->payment_type === 'SHIPPING_ONLY') {
+                    $payLabel = $order->shipping_cost > 0 ? 'شحن فقط' : 'عربون تأكيد';
+                    $remainingAmount = max(0, $order->total - $totalPaid);
+                } else {
+                    $payLabel = 'دفع كامل';
+                    $remainingAmount = 0;
+                }
+            @endphp
+            <div class="bg-white/5 rounded-lg p-4 space-y-2">
+                <div class="flex justify-between text-sm">
+                    <span class="text-white/50">نوع الدفع</span>
+                    <span class="text-white font-medium">{{ $payLabel }}</span>
+                </div>
+                @if($walletUsed > 0)
+                <div class="flex justify-between text-sm">
+                    <span class="text-white/50">من المحفظة</span>
+                    <span class="text-green-400 font-bold">{{ number_format($walletUsed) }} ج.م</span>
+                </div>
+                @endif
+                @if($expectedAmount > 0)
+                <div class="flex justify-between text-sm">
+                    <span class="text-white/50">تحويل InstaPay</span>
+                    <span class="text-brand-red font-bold">{{ number_format($expectedAmount) }} ج.م</span>
+                </div>
+                @endif
+                <div class="flex justify-between text-sm">
+                    <span class="text-white/50">المتبقي عند الاستلام</span>
+                    <span class="text-white font-medium">{{ number_format($remainingAmount) }} ج.م</span>
+                </div>
+            </div>
+
+            @if($order->payment_status === 'PENDING')
+            <div class="flex gap-2">
+                <form action="{{ route('admin.orders.verify-payment', $order) }}" method="POST" class="flex-1">
+                    @csrf @method('PATCH')
+                    <input type="hidden" name="payment_status" value="PAID">
+                    <button type="submit" style="width:100%;background:#22c55e;color:white;padding:12px;border-radius:10px;border:none;cursor:pointer;font-size:14px;font-weight:700;">
+                        تأكيد الدفع
+                    </button>
+                </form>
+                <form action="{{ route('admin.orders.verify-payment', $order) }}" method="POST" class="flex-1">
+                    @csrf @method('PATCH')
+                    <input type="hidden" name="payment_status" value="FAILED">
+                    <button type="submit" style="width:100%;background:rgba(239,68,68,0.1);color:#ef4444;padding:12px;border-radius:10px;border:1px solid rgba(239,68,68,0.3);cursor:pointer;font-size:14px;font-weight:700;">
+                        رفض الدفع
+                    </button>
+                </form>
+            </div>
+            @endif
+        </div>
+    </div>
+</div>
+@endif
 
 {{-- Address --}}
 @if($order->address)

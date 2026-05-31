@@ -65,6 +65,13 @@ class LoginController extends Controller
         Auth::login($user);
         $request->session()->regenerate();
 
+        // Signup bonus points
+        $signupBonus = (int) \App\Models\SiteSetting::get('signup_bonus_points', 50);
+        if ($signupBonus > 0) {
+            $wallet = $user->getOrCreateWallet();
+            $wallet->addPoints($signupBonus, 'مكافأة تسجيل حساب جديد', 'Signup', $user->id);
+        }
+
         return redirect('/');
     }
 

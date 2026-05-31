@@ -37,7 +37,8 @@ class CartController extends Controller
             ];
         }
 
-        $shippingCost = $subtotal >= 2000 ? 0 : null; // null = not yet determined
+        $freeShippingThreshold = (float) \App\Models\SiteSetting::get('free_shipping_threshold', 2000);
+        $shippingCost = ($freeShippingThreshold > 0 && $subtotal >= $freeShippingThreshold) ? 0 : null;
         $total = $subtotal + ($shippingCost ?? 0);
 
         return view('shop.cart', compact('items', 'subtotal', 'shippingCost', 'total'));

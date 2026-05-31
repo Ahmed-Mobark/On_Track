@@ -46,4 +46,14 @@ class User extends Authenticatable
     public function cartItems() { return $this->hasMany(CartItem::class); }
     public function posSessions() { return $this->hasMany(PosSession::class, 'cashier_id'); }
     public function posTransactions() { return $this->hasMany(PosTransaction::class, 'cashier_id'); }
+
+    public function wallet()
+    {
+        return $this->hasOne(Wallet::class);
+    }
+
+    public function getOrCreateWallet(): Wallet
+    {
+        return $this->wallet ?? $this->wallet()->create(['balance' => 0, 'points' => 0]);
+    }
 }

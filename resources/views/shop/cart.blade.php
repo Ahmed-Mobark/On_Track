@@ -10,8 +10,16 @@
 @endpush
 
 @section('content')
-<div class="max-w-4xl mx-auto px-4 py-8">
-    <h1 class="text-2xl font-bold text-white mb-8">سلة التسوق</h1>
+<div class="max-w-4xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
+    <div class="flex items-center gap-3 mb-8">
+        <a href="{{ route('shop') }}" class="text-white/40 hover:text-white transition-colors">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+        </a>
+        <h1 class="text-2xl font-bold text-white">سلة التسوق</h1>
+        @if(!empty($items))
+        <span class="bg-white/5 text-white/50 text-xs px-2.5 py-1 rounded-full">{{ count($items) }} منتج</span>
+        @endif
+    </div>
 
     @if(count($items))
         <div class="space-y-4 mb-8">

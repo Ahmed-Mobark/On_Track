@@ -16,10 +16,16 @@ use App\Http\Controllers\Admin\CouponController;
 use App\Http\Controllers\Admin\CustomerController;
 use App\Http\Controllers\Admin\PosController;
 use App\Http\Controllers\Admin\InventoryController;
+use App\Http\Controllers\Admin\AiAssistantController;
 use App\Http\Controllers\Admin\AnalyticsController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\ContactMessageController;
 use App\Http\Controllers\Shop\ContactController;
+
+// ==================== WEBHOOKS (no CSRF) ====================
+Route::post('/webhooks/bosta', [\App\Http\Controllers\Webhook\BostaWebhookController::class, 'handle'])
+    ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class])
+    ->name('webhooks.bosta');
 
 // ==================== AUTH ====================
 Route::get('/login', [LoginController::class, 'showLogin'])->name('login');
@@ -80,11 +86,15 @@ Route::middleware('auth')->group(function () {
     Route::put('/account', [AccountController::class, 'updateProfile'])->name('account.update');
     Route::post('/account/address', [AccountController::class, 'storeAddress'])->name('account.address.store');
     Route::delete('/account/address/{address}', [AccountController::class, 'deleteAddress'])->name('account.address.delete');
+
+    // Points & Wallet
+    Route::post('/account/redeem-points', [AccountController::class, 'redeemPoints'])->name('account.redeem-points');
 });
 
 // ==================== ADMIN ====================
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(function () {
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+    Route::post('/ai-assistant', [AiAssistantController::class, 'query'])->name('ai-assistant');
 
     Route::resource('products', AdminProductController::class)->except(['show']);
     Route::resource('categories', CategoryController::class)->except(['show', 'create', 'edit']);
@@ -94,8 +104,11 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     Route::get('/orders/{order}', [AdminOrderController::class, 'show'])->name('orders.show');
     Route::patch('/orders/{order}/status', [AdminOrderController::class, 'updateStatus'])->name('orders.status');
     Route::patch('/orders/{order}/shipping', [AdminOrderController::class, 'updateShipping'])->name('orders.shipping');
+    Route::patch('/orders/{order}/verify-payment', [AdminOrderController::class, 'verifyPayment'])->name('orders.verify-payment');
 
     Route::get('/customers', [CustomerController::class, 'index'])->name('customers.index');
+    Route::get('/customers/{user}', [CustomerController::class, 'show'])->name('customers.show');
+    Route::post('/customers/{user}/wallet', [\App\Http\Controllers\Admin\WalletController::class, 'update'])->name('customers.wallet');
 
     // POS
     Route::get('/pos', [PosController::class, 'index'])->name('pos.index');

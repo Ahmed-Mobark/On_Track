@@ -5,18 +5,86 @@
 <div class="max-w-4xl mx-auto px-4 py-8">
     <h1 class="text-2xl font-bold text-white mb-8">حسابي</h1>
 
-    <div class="grid md:grid-cols-3 gap-4 mb-8">
-        <div class="bg-brand-dark rounded-xl p-6 text-center">
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <div class="bg-brand-dark rounded-xl p-5 text-center">
             <p class="text-3xl font-bold text-white">{{ $ordersCount }}</p>
             <p class="text-white/40 text-sm mt-1">طلباتي</p>
         </div>
-        <a href="{{ route('orders.index') }}" class="bg-brand-dark rounded-xl p-6 text-center hover:bg-white/5 transition-colors">
-            <p class="text-white font-medium">عرض الطلبات</p>
+        <div class="bg-brand-dark rounded-xl p-5 text-center">
+            <p class="text-3xl font-bold text-brand-red">{{ number_format($wallet->points) }}</p>
+            <p class="text-white/40 text-sm mt-1">نقاطي</p>
+        </div>
+        <div class="bg-brand-dark rounded-xl p-5 text-center">
+            <p class="text-3xl font-bold text-green-400">{{ number_format($wallet->balance) }}</p>
+            <p class="text-white/40 text-sm mt-1">رصيد المحفظة (ج.م)</p>
+        </div>
+        <a href="{{ route('orders.index') }}" class="bg-brand-dark rounded-xl p-5 text-center hover:bg-white/5 transition-colors flex flex-col items-center justify-center">
+            <svg class="w-6 h-6 text-white/50 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
+            <p class="text-white/70 font-medium text-sm">عرض الطلبات</p>
         </a>
-        <form action="{{ route('logout') }}" method="POST" class="bg-brand-dark rounded-xl p-6 text-center hover:bg-white/5 transition-colors">
-            @csrf
-            <button type="submit" class="text-red-400 font-medium">تسجيل الخروج</button>
-        </form>
+    </div>
+
+    {{-- Points & Wallet --}}
+    <div class="bg-brand-dark rounded-xl p-6 mb-6">
+        <h2 class="text-lg font-bold text-white mb-4">النقاط والمحفظة</h2>
+
+        <div class="grid md:grid-cols-2 gap-6">
+            {{-- Redeem Points --}}
+            <div class="bg-white/[0.03] rounded-xl p-5">
+                <h3 class="text-white font-bold text-sm mb-2">استبدال النقاط بكود خصم</h3>
+                <p class="text-white/40 text-xs mb-3">
+                    {{ number_format($wallet->points) }} نقطة = {{ number_format($pointsValue) }} ج.م خصم
+                </p>
+                @if($wallet->points >= $minRedeem)
+                <form action="{{ route('account.redeem-points') }}" method="POST" class="flex gap-2">
+                    @csrf
+                    <input type="number" name="points" min="{{ $minRedeem }}" max="{{ $wallet->points }}" value="{{ $wallet->points }}" placeholder="عدد النقاط"
+                        class="flex-1 bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white text-sm focus:outline-none focus:border-brand-red" dir="ltr">
+                    <button type="submit" class="bg-brand-red hover:bg-brand-red-dark text-white px-5 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap">
+                        استبدال
+                    </button>
+                </form>
+                @else
+                <p class="text-white/30 text-xs">تحتاج {{ $minRedeem }} نقطة على الأقل للاستبدال</p>
+                @endif
+            </div>
+
+            {{-- Wallet Info --}}
+            <div class="bg-white/[0.03] rounded-xl p-5">
+                <h3 class="text-white font-bold text-sm mb-2">رصيد المحفظة</h3>
+                <p class="text-green-400 text-2xl font-black mb-1">{{ number_format($wallet->balance) }} <span class="text-sm font-medium text-green-400/60">ج.م</span></p>
+                <p class="text-white/40 text-xs">يُخصم تلقائياً من طلبك القادم في الـ Checkout</p>
+            </div>
+        </div>
+
+        {{-- Transactions --}}
+        @if($transactions->count())
+        <div class="mt-6 pt-4 border-t border-white/5">
+            <h3 class="text-white/60 text-sm font-medium mb-3">آخر المعاملات</h3>
+            <div class="space-y-2">
+                @foreach($transactions as $tx)
+                <div class="flex items-center justify-between py-2 text-sm">
+                    <div class="flex items-center gap-2">
+                        <div class="w-2 h-2 rounded-full {{ $tx->type === 'CREDIT' ? 'bg-green-400' : 'bg-red-400' }}"></div>
+                        <span class="text-white/70">{{ $tx->description }}</span>
+                    </div>
+                    <div class="text-left">
+                        @if($tx->amount > 0)
+                        <span class="{{ $tx->type === 'CREDIT' ? 'text-green-400' : 'text-red-400' }} font-medium">
+                            {{ $tx->type === 'CREDIT' ? '+' : '-' }}{{ number_format($tx->amount) }} ج.م
+                        </span>
+                        @endif
+                        @if($tx->points > 0)
+                        <span class="{{ $tx->type === 'CREDIT' ? 'text-green-400' : 'text-red-400' }} font-medium">
+                            {{ $tx->type === 'CREDIT' ? '+' : '-' }}{{ number_format($tx->points) }} نقطة
+                        </span>
+                        @endif
+                    </div>
+                </div>
+                @endforeach
+            </div>
+        </div>
+        @endif
     </div>
 
     {{-- Profile --}}

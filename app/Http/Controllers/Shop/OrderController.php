@@ -43,25 +43,44 @@ class OrderController extends Controller
 
         // Default shipping — will be recalculated when user picks governorate
         $shippingCost = 0;
+        $shippingDetermined = false; // whether we know the shipping cost
         $addresses = auth()->check() ? auth()->user()->addresses : collect();
         $isGuest = !auth()->check();
 
         // If logged in with a default address, use its shipping cost
+        $freeShippingThreshold = (float) \App\Models\SiteSetting::get('free_shipping_threshold', 2000);
+        $isFreeShipping = ($freeShippingThreshold > 0 && $subtotal >= $freeShippingThreshold);
+
         if (!$isGuest && $addresses->count()) {
             $defaultAddr = $addresses->first();
             $shippingCost = \App\Models\ShippingRate::getCost($defaultAddr->governorate, $defaultAddr->city);
-            if ($subtotal >= 2000) $shippingCost = 0;
+            if ($isFreeShipping) $shippingCost = 0;
+            $shippingDetermined = true;
+        } elseif ($isFreeShipping) {
+            $shippingDetermined = true;
         }
 
         $total = $subtotal + $shippingCost;
 
-        return view('shop.checkout', compact('items', 'addresses', 'subtotal', 'shippingCost', 'total', 'isGuest'));
+        // Calculate deposit when shipping is free
+        $depositMin = (float) \App\Models\SiteSetting::get('deposit_min', 100);
+        $depositPercentage = (float) \App\Models\SiteSetting::get('deposit_percentage', 10);
+        $depositAmount = $isFreeShipping
+            ? max($depositMin, ceil($subtotal * ($depositPercentage / 100)))
+            : $depositMin;
+
+        $walletBalance = (!$isGuest) ? (float) (auth()->user()->wallet?->balance ?? 0) : 0;
+
+        return view('shop.checkout', compact('items', 'addresses', 'subtotal', 'shippingCost', 'shippingDetermined', 'isFreeShipping', 'total', 'isGuest', 'depositAmount', 'walletBalance'));
     }
 
     public function store(Request $request)
     {
         $rules = [
             'payment_method' => 'required|in:COD,VISA,INSTAPAY,WALLET',
+            'payment_type' => 'required|in:SHIPPING_ONLY,FULL',
+            'payment_proof' => 'required_without:use_wallet|image|mimes:jpg,jpeg,png,webp|max:5120',
+            'use_wallet' => 'nullable|numeric|min:0',
         ];
 
         // Guest checkout: require address info inline
@@ -154,6 +173,10 @@ class OrderController extends Controller
             }
         }
         $shippingCost = \App\Models\ShippingRate::getCost($governorate, $city);
+        $freeShippingThreshold = (float) \App\Models\SiteSetting::get('free_shipping_threshold', 2000);
+        if ($freeShippingThreshold > 0 && $subtotal >= $freeShippingThreshold) {
+            $shippingCost = 0;
+        }
         $total = $subtotal - $discount + $shippingCost;
 
         // Handle guest user + address
@@ -191,11 +214,35 @@ class OrderController extends Controller
             $addressId = $request->address_id;
         }
 
+        // Handle payment proof upload
+        $paymentProofPath = null;
+        if ($request->hasFile('payment_proof')) {
+            $paymentProofPath = $request->file('payment_proof')->store('payment-proofs', 'public');
+        }
+
+        // Calculate deposit amount for partial payments
+        $depositAmount = null;
+        if ($request->payment_type === 'SHIPPING_ONLY') {
+            if ($shippingCost > 0) {
+                $depositAmount = $shippingCost;
+            } else {
+                $depositMin = (float) \App\Models\SiteSetting::get('deposit_min', 100);
+                $depositPercentage = (float) \App\Models\SiteSetting::get('deposit_percentage', 10);
+                $depositAmount = max($depositMin, ceil(($subtotal - $discount) * ($depositPercentage / 100)));
+            }
+        } elseif ($request->payment_type === 'FULL') {
+            $depositAmount = $total;
+        }
+
         $order = Order::create([
             'order_number' => Order::generateOrderNumber(),
             'user_id' => $userId,
             'address_id' => $addressId,
-            'payment_method' => $request->payment_method,
+            'payment_method' => 'INSTAPAY',
+            'payment_type' => $request->payment_type,
+            'payment_status' => 'PENDING',
+            'payment_proof' => $paymentProofPath,
+            'deposit_amount' => $depositAmount,
             'subtotal' => $subtotal,
             'shipping_cost' => $shippingCost,
             'discount' => $discount,
@@ -209,6 +256,16 @@ class OrderController extends Controller
         }
 
         // Stock will be decremented when order is CONFIRMED from dashboard
+
+        // Deduct wallet balance if used
+        if (($request->use_wallet ?? 0) > 0 && auth()->check()) {
+            $wallet = auth()->user()->getOrCreateWallet();
+            $walletUsed = min((float) $request->use_wallet, (float) $wallet->balance, $total);
+            if ($walletUsed > 0) {
+                $wallet->deductBalance($walletUsed, "دفع طلب #{$order->order_number}", 'Order', $order->id);
+                $order->update(['wallet_used' => $walletUsed]);
+            }
+        }
 
         // Clear session cart
         session()->forget('cart');

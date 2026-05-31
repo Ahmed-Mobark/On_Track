@@ -7,19 +7,19 @@
 {{-- Stats --}}
 <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
     @foreach([
-        ['label' => 'إجمالي الطلبات', 'value' => $stats['totalOrders'], 'color' => 'blue'],
-        ['label' => 'إجمالي الإيرادات', 'value' => number_format($stats['totalRevenue']) . ' ج.م', 'color' => 'green'],
-        ['label' => 'طلبات معلقة', 'value' => $stats['pendingOrders'], 'color' => 'yellow'],
-        ['label' => 'مبيعات POS اليوم', 'value' => number_format($stats['todayPOSSales']) . ' ج.م', 'color' => 'purple'],
-        ['label' => 'عدد العملاء', 'value' => $stats['totalCustomers'], 'color' => 'cyan'],
-        ['label' => 'عدد المنتجات', 'value' => $stats['totalProducts'], 'color' => 'indigo'],
-        ['label' => 'طلبات اليوم', 'value' => $stats['todayOrders'], 'color' => 'orange'],
-        ['label' => 'في المفضلة', 'value' => $stats['totalWishlistItems'], 'color' => 'red'],
+        ['label' => 'إجمالي الطلبات', 'value' => $stats['totalOrders'], 'url' => route('admin.orders.index')],
+        ['label' => 'إجمالي الإيرادات', 'value' => number_format($stats['totalRevenue']) . ' ج.م', 'url' => route('admin.analytics.index')],
+        ['label' => 'طلبات معلقة', 'value' => $stats['pendingOrders'], 'url' => route('admin.orders.index') . '?status=PENDING'],
+        ['label' => 'مبيعات POS اليوم', 'value' => number_format($stats['todayPOSSales']) . ' ج.م', 'url' => route('admin.pos.index')],
+        ['label' => 'عدد العملاء', 'value' => $stats['totalCustomers'], 'url' => route('admin.customers.index')],
+        ['label' => 'عدد المنتجات', 'value' => $stats['totalProducts'], 'url' => route('admin.products.index')],
+        ['label' => 'طلبات اليوم', 'value' => $stats['todayOrders'], 'url' => route('admin.orders.index')],
+        ['label' => 'في المفضلة', 'value' => $stats['totalWishlistItems'], 'url' => route('admin.products.index')],
     ] as $stat)
-        <div class="bg-brand-dark rounded-xl p-4 border border-white/5">
+        <a href="{{ $stat['url'] }}" class="bg-brand-dark rounded-xl p-4 border border-white/5 hover:border-white/15 hover:bg-white/[0.02] transition-all">
             <p class="text-white/40 text-xs mb-1">{{ $stat['label'] }}</p>
             <p class="text-white text-xl font-bold">{{ $stat['value'] }}</p>
-        </div>
+        </a>
     @endforeach
 </div>
 
@@ -89,13 +89,21 @@
             </thead>
             <tbody>
                 @foreach($recentOrders as $order)
-                <tr class="border-b border-white/5 hover:bg-white/5">
-                    <td class="px-4 py-3 text-white">{{ $order->order_number }}</td>
-                    <td class="px-4 py-3 text-white/70">{{ $order->user->name ?? '-' }}</td>
+                <tr class="border-b border-white/5 hover:bg-white/5 cursor-pointer" onclick="window.location='{{ route('admin.orders.show', $order) }}'">
+                    <td class="px-4 py-3"><span class="text-white font-medium">{{ $order->order_number }}</span></td>
+                    <td class="px-4 py-3">
+                        @if($order->user)
+                        <a href="{{ route('admin.customers.show', $order->user) }}" class="text-white/70 hover:text-brand-red" onclick="event.stopPropagation()">{{ $order->user->name }}</a>
+                        @else <span class="text-white/40">-</span> @endif
+                    </td>
                     <td class="px-4 py-3 text-white font-medium">{{ number_format($order->total) }} ج.م</td>
                     <td class="px-4 py-3">
-                        <span class="text-xs px-2 py-1 rounded-full {{ $order->status === 'DELIVERED' ? 'bg-green-500/10 text-green-400' : ($order->status === 'PENDING' ? 'bg-yellow-500/10 text-yellow-400' : 'bg-blue-500/10 text-blue-400') }}">
-                            {{ $order->status }}
+                        @php
+                            $sc = ['PENDING'=>'bg-yellow-500/10 text-yellow-400','CONFIRMED'=>'bg-blue-500/10 text-blue-400','PROCESSING'=>'bg-purple-500/10 text-purple-400','SHIPPED'=>'bg-indigo-500/10 text-indigo-400','DELIVERED'=>'bg-green-500/10 text-green-400','CANCELLED'=>'bg-red-500/10 text-red-400','RETURNED'=>'bg-red-500/10 text-red-400'];
+                            $sl = ['PENDING'=>'معلق','CONFIRMED'=>'مؤكد','PROCESSING'=>'تجهيز','SHIPPED'=>'شحن','DELIVERED'=>'توصيل','CANCELLED'=>'ملغي','RETURNED'=>'مرتجع'];
+                        @endphp
+                        <span class="text-xs px-2 py-1 rounded-full {{ $sc[$order->status] ?? 'bg-white/10 text-white/60' }}">
+                            {{ $sl[$order->status] ?? $order->status }}
                         </span>
                     </td>
                     <td class="px-4 py-3 text-white/40">{{ $order->created_at->format('m/d H:i') }}</td>

@@ -9,17 +9,75 @@
     <div class="grid md:grid-cols-3 gap-4 mb-8">
         <div class="bg-brand-dark rounded-xl p-4">
             <p class="text-white/40 text-xs mb-1">الحالة</p>
-            <p class="text-white font-medium">{{ $order->status }}</p>
+            <p class="text-white font-medium">{{ match($order->status) {
+                'PENDING' => 'في انتظار التأكيد',
+                'CONFIRMED' => 'تم التأكيد',
+                'PROCESSING' => 'قيد التجهيز',
+                'SHIPPED' => 'تم الشحن',
+                'DELIVERED' => 'تم التوصيل',
+                'CANCELLED' => 'ملغي',
+                'RETURNED' => 'مرتجع',
+                default => $order->status,
+            } }}</p>
         </div>
         <div class="bg-brand-dark rounded-xl p-4">
-            <p class="text-white/40 text-xs mb-1">الدفع</p>
-            <p class="text-white font-medium">{{ $order->payment_method }} - {{ $order->payment_status }}</p>
+            <p class="text-white/40 text-xs mb-1">حالة الدفع</p>
+            <p class="font-medium {{ $order->payment_status === 'PAID' ? 'text-green-400' : 'text-yellow-400' }}">
+                {{ match($order->payment_status) {
+                    'PENDING' => 'في انتظار التحقق',
+                    'PAID' => 'تم التحقق',
+                    'FAILED' => 'مرفوض',
+                    'REFUNDED' => 'تم الاسترداد',
+                    default => $order->payment_status,
+                } }}
+            </p>
         </div>
         <div class="bg-brand-dark rounded-xl p-4">
             <p class="text-white/40 text-xs mb-1">الإجمالي</p>
             <p class="text-brand-red font-bold text-lg">{{ number_format($order->total) }} ج.م</p>
         </div>
     </div>
+
+    {{-- Payment Breakdown --}}
+    @if($order->deposit_amount || $order->wallet_used > 0)
+    <div class="bg-brand-dark rounded-xl p-6 mb-6 border border-white/5">
+        <h2 class="text-lg font-bold text-white mb-4">تفاصيل الدفع</h2>
+        <div class="space-y-3">
+            @if($order->wallet_used > 0)
+            <div class="flex justify-between items-center py-2">
+                <div class="flex items-center gap-2">
+                    <div class="w-2 h-2 rounded-full bg-green-400"></div>
+                    <span class="text-white/70 text-sm">من رصيد المحفظة</span>
+                </div>
+                <span class="text-green-400 font-bold text-sm">{{ number_format($order->wallet_used) }} ج.م</span>
+            </div>
+            @endif
+            @if($order->deposit_amount)
+            <div class="flex justify-between items-center py-2 {{ $order->wallet_used > 0 ? 'border-t border-white/5' : '' }}">
+                <div class="flex items-center gap-2">
+                    <div class="w-2 h-2 rounded-full {{ $order->payment_status === 'PAID' ? 'bg-green-400' : 'bg-yellow-400' }}"></div>
+                    <span class="text-white/70 text-sm">{{ $order->payment_type === 'SHIPPING_ONLY' ? ($order->shipping_cost > 0 ? 'تحويل رسوم الشحن' : 'تحويل عربون التأكيد') : 'تحويل المبلغ (InstaPay)' }}</span>
+                </div>
+                <span class="text-green-400 font-bold text-sm">{{ number_format($order->deposit_amount) }} ج.م</span>
+            </div>
+            @endif
+            @if($order->payment_type === 'SHIPPING_ONLY')
+            @php $totalPaid = ($order->deposit_amount ?? 0) + ($order->wallet_used ?? 0); @endphp
+            <div class="flex justify-between items-center py-2 border-t border-white/5">
+                <div class="flex items-center gap-2">
+                    <div class="w-2 h-2 rounded-full {{ $order->status === 'DELIVERED' ? 'bg-green-400' : 'bg-white/30' }}"></div>
+                    <span class="text-white/70 text-sm">المتبقي (عند الاستلام)</span>
+                </div>
+                <span class="text-white font-bold text-sm">{{ number_format(max(0, $order->total - $totalPaid)) }} ج.م</span>
+            </div>
+            @endif
+            <div class="flex justify-between items-center py-2 border-t border-white/10">
+                <span class="text-white font-bold text-sm">الإجمالي</span>
+                <span class="text-brand-red font-bold">{{ number_format($order->total) }} ج.م</span>
+            </div>
+        </div>
+    </div>
+    @endif
 
     {{-- Items --}}
     <div class="bg-brand-dark rounded-xl p-6 mb-6">

@@ -69,6 +69,16 @@ class OrderController extends Controller
 
         $order->update(['status' => $newStatus]);
 
+        // Award loyalty points when order is confirmed
+        if ($oldStatus === 'PENDING' && in_array($newStatus, ['CONFIRMED', 'PROCESSING', 'SHIPPED', 'DELIVERED'])) {
+            $this->awardPoints($order);
+        }
+
+        // Refund to wallet when returning a confirmed order
+        if (in_array($oldStatus, ['CONFIRMED', 'PROCESSING', 'SHIPPED']) && $newStatus === 'RETURNED') {
+            $this->refundToWallet($order);
+        }
+
         // Send email notification to customer
         $this->notifyCustomer($order, $newStatus);
 
@@ -103,6 +113,19 @@ class OrderController extends Controller
         return back()->with('success', 'تم تحديث بيانات الشحن وإرسال إشعار للعميل');
     }
 
+    public function verifyPayment(Request $request, Order $order)
+    {
+        $request->validate(['payment_status' => 'required|in:PAID,FAILED']);
+
+        $order->update(['payment_status' => $request->payment_status]);
+
+        if ($request->payment_status === 'PAID') {
+            return back()->with('success', 'تم تأكيد الدفع بنجاح');
+        }
+
+        return back()->with('success', 'تم رفض الدفع');
+    }
+
     private function notifyCustomer(Order $order, string $newStatus): void
     {
         $order->load(['user', 'items.product', 'items.variant']);
@@ -135,6 +158,33 @@ class OrderController extends Controller
             app(\App\Services\TelegramService::class)->send($msg);
         } catch (\Exception $e) {
             //
+        }
+    }
+
+    private function awardPoints(Order $order): void
+    {
+        if (!$order->user) return;
+        try {
+            $wallet = $order->user->getOrCreateWallet();
+            $points = \App\Models\Wallet::calculatePoints((float) $order->total, $order->payment_type ?? 'SHIPPING_ONLY');
+            if ($points > 0) {
+                $label = $order->payment_type === 'FULL' ? 'نقاط طلب (دفع كامل)' : 'نقاط طلب';
+                $wallet->addPoints($points, "{$label} #{$order->order_number}", 'Order', $order->id);
+            }
+        } catch (\Exception $e) {
+            // Don't block order
+        }
+    }
+
+    private function refundToWallet(Order $order): void
+    {
+        if (!$order->user || !$order->deposit_amount) return;
+        try {
+            $wallet = $order->user->getOrCreateWallet();
+            $refundAmount = (float) $order->deposit_amount;
+            $wallet->addBalance($refundAmount, "استرداد طلب مرتجع #{$order->order_number}", 'Refund', $order->id);
+        } catch (\Exception $e) {
+            // Don't block
         }
     }
 }

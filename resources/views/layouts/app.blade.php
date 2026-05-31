@@ -30,48 +30,119 @@
         img { transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease; }
 
         /* Smooth page load */
-        body { animation: pageIn 0.3s ease-out; }
-        @keyframes pageIn { from { opacity: 0; } to { opacity: 1; } }
+        body { animation: pageIn 0.35s ease-out; }
+        @keyframes pageIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
 
         /* Snappy hover on cards */
-        .product-hover { transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s ease; }
-        .product-hover:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(0,0,0,0.3); }
+        .product-hover {
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease;
+        }
+        .product-hover:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 16px 48px rgba(0,0,0,0.35);
+        }
+        .product-hover:active { transform: translateY(-2px) scale(0.98); }
 
         /* Smooth scroll */
         html { scroll-behavior: smooth; }
+
+        /* Button press effect */
+        .btn-press:active { transform: scale(0.96); }
+
+        /* Skeleton loading shimmer */
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+        .skeleton {
+            background: linear-gradient(90deg, rgba(255,255,255,0.03) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.03) 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+        }
+
+        /* Scroll indicator fade */
+        @keyframes scrollPulse {
+            0%, 100% { opacity: 0.4; transform: translateY(0); }
+            50% { opacity: 0.8; transform: translateY(4px); }
+        }
+
+        /* Glass card effect */
+        .glass-card {
+            background: rgba(20, 20, 20, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255,255,255,0.06);
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+
+        /* Toast animation */
+        @keyframes toastIn {
+            from { opacity: 0; transform: translateX(-50%) translateY(12px); }
+            to { opacity: 1; transform: translateX(-50%) translateY(0); }
+        }
+
+        /* Radio/checkbox custom styling */
+        input[type="radio"] {
+            accent-color: #e63946;
+        }
+
+        /* Focus ring */
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #e63946 !important;
+            box-shadow: 0 0 0 2px rgba(230, 57, 70, 0.15);
+        }
+
+        /* Selection color */
+        ::selection { background: rgba(230, 57, 70, 0.3); color: white; }
     </style>
     @stack('styles')
 </head>
 <body class="bg-brand-black text-white min-h-screen">
     {{-- Header --}}
-    <header class="border-b border-white/10 sticky top-0 z-50 bg-brand-black/95 backdrop-blur-sm relative overflow-hidden">
-        <img src="/images/brand/bgline.png" alt="" class="absolute inset-0 w-full h-full object-cover opacity-[0.03] pointer-events-none select-none">
-        <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between relative z-10">
-            <a href="{{ route('home') }}">
-                <img src="/images/brand/logo.png" alt="On Track" class="h-8 w-auto">
+    <header class="border-b border-white/5 sticky top-0 z-50 bg-brand-black/90 backdrop-blur-md relative overflow-hidden">
+        <img src="/images/brand/bgline.png" alt="" class="absolute inset-0 w-full h-full object-cover opacity-[0.02] pointer-events-none select-none">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between relative z-10">
+            <a href="{{ route('home') }}" class="shrink-0">
+                <img src="/images/brand/logo.png" alt="On Track" class="h-8 w-auto hover:opacity-80 transition-opacity">
             </a>
 
-            <nav class="hidden md:flex items-center gap-6">
-                <a href="{{ route('home') }}" class="text-white/70 hover:text-white text-sm font-medium">الرئيسية</a>
-                <a href="{{ route('shop') }}" class="text-white/70 hover:text-white text-sm font-medium">المتجر</a>
+            <nav class="hidden md:flex items-center gap-8">
+                <a href="{{ route('home') }}" class="text-white/60 hover:text-white text-sm font-medium relative group">
+                    الرئيسية
+                    @if(request()->routeIs('home'))
+                    <span class="absolute -bottom-1 right-0 left-0 h-0.5 bg-brand-red rounded-full"></span>
+                    @endif
+                </a>
+                <a href="{{ route('shop') }}" class="text-white/60 hover:text-white text-sm font-medium relative">
+                    المتجر
+                    @if(request()->routeIs('shop'))
+                    <span class="absolute -bottom-1 right-0 left-0 h-0.5 bg-brand-red rounded-full"></span>
+                    @endif
+                </a>
             </nav>
 
-            <div class="flex items-center gap-4">
-                <a href="{{ route('cart') }}" class="text-white/70 hover:text-white relative">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
+            <div class="flex items-center gap-3">
+                <a href="{{ route('cart') }}" class="text-white/60 hover:text-white relative p-2 rounded-lg hover:bg-white/5 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
                     @if(session('cart') && count(session('cart')) > 0)
-                        <span class="absolute -top-1 -right-1 bg-brand-red text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center">{{ count(session('cart')) }}</span>
+                        <span class="absolute top-0.5 right-0.5 bg-brand-red text-white text-[9px] w-4 h-4 rounded-full flex items-center justify-center font-bold leading-none">{{ count(session('cart')) }}</span>
                     @endif
                 </a>
                 @auth
-                    <a href="{{ route('wishlist') }}" class="text-white/70 hover:text-white">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+                    <a href="{{ route('wishlist') }}" class="text-white/60 hover:text-white p-2 rounded-lg hover:bg-white/5 transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
                     </a>
-                    <a href="{{ route('account') }}" class="text-white/70 hover:text-white">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                    <a href="{{ route('account') }}" class="text-white/60 hover:text-white p-2 rounded-lg hover:bg-white/5 transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
                     </a>
                 @else
-                    <a href="{{ route('login') }}" class="text-sm text-white/70 hover:text-white font-medium">تسجيل الدخول</a>
+                    <a href="{{ route('login') }}" class="text-sm text-white/60 hover:text-white font-medium px-4 py-2 rounded-lg hover:bg-white/5 transition-colors">تسجيل الدخول</a>
                 @endauth
             </div>
         </div>
@@ -103,9 +174,9 @@
     </main>
 
     {{-- Footer --}}
-    <footer class="border-t border-white/10 py-12 mt-16">
-        <div class="max-w-7xl mx-auto px-4">
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-8 mb-8">
+    <footer class="border-t border-white/5 py-16 mt-20 bg-gradient-to-b from-transparent to-brand-dark/30">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-10 mb-10">
                 <div>
                     <h3 class="text-white font-semibold mb-3">On Track</h3>
                     <p class="text-white/40 text-sm mb-4">ملابس رياضية بريميوم مصممة للأداء العالي</p>
@@ -292,9 +363,16 @@
         var toast = document.createElement('div');
         toast.id = 'app-toast';
         toast.textContent = message;
-        toast.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:rgba(20,20,20,0.95);color:white;padding:12px 24px;border-radius:12px;font-size:14px;z-index:9999;border:1px solid rgba(255,255,255,0.1);backdrop-filter:blur(8px);transition:opacity 0.3s;';
+        toast.style.cssText = 'position:fixed;bottom:100px;left:50%;transform:translateX(-50%) translateY(12px);background:rgba(20,20,20,0.97);color:white;padding:14px 28px;border-radius:14px;font-size:13px;z-index:9999;border:1px solid rgba(255,255,255,0.08);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);opacity:0;transition:all 0.35s cubic-bezier(0.34,1.56,0.64,1);box-shadow:0 8px 32px rgba(0,0,0,0.4);font-family:Cairo,sans-serif;';
         document.body.appendChild(toast);
-        setTimeout(function() { toast.style.opacity = '0'; }, 2500);
+        requestAnimationFrame(function() {
+            toast.style.opacity = '1';
+            toast.style.transform = 'translateX(-50%) translateY(0)';
+        });
+        setTimeout(function() {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateX(-50%) translateY(12px)';
+        }, 2500);
         setTimeout(function() { toast.remove(); }, 3000);
     }
 

@@ -22,8 +22,8 @@
         </thead>
         <tbody>
             @foreach($customers as $customer)
-            <tr class="border-b border-white/5 hover:bg-white/5">
-                <td class="px-4 py-3 text-white">{{ $customer->name }}</td>
+            <tr class="border-b border-white/5 hover:bg-white/5 cursor-pointer" onclick="window.location='{{ route('admin.customers.show', $customer) }}'">
+                <td class="px-4 py-3 text-white font-medium">{{ $customer->name }}</td>
                 <td class="px-4 py-3 text-white/60">{{ $customer->email }}</td>
                 <td class="px-4 py-3 text-white/60">{{ $customer->phone ?? '-' }}</td>
                 <td class="px-4 py-3 text-white">{{ $customer->orders_count }}</td>

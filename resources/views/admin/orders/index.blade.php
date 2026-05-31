@@ -31,19 +31,25 @@
         </thead>
         <tbody>
             @foreach($orders as $order)
-            <tr class="border-b border-white/5 hover:bg-white/5">
+            @php
+                $sc = ['PENDING'=>'bg-yellow-500/10 text-yellow-400','CONFIRMED'=>'bg-blue-500/10 text-blue-400','PROCESSING'=>'bg-purple-500/10 text-purple-400','SHIPPED'=>'bg-indigo-500/10 text-indigo-400','DELIVERED'=>'bg-green-500/10 text-green-400','CANCELLED'=>'bg-red-500/10 text-red-400','RETURNED'=>'bg-red-500/10 text-red-400'];
+                $sl = ['PENDING'=>'معلق','CONFIRMED'=>'مؤكد','PROCESSING'=>'تجهيز','SHIPPED'=>'شحن','DELIVERED'=>'توصيل','CANCELLED'=>'ملغي','RETURNED'=>'مرتجع'];
+            @endphp
+            <tr class="border-b border-white/5 hover:bg-white/5 cursor-pointer" onclick="window.location='{{ route('admin.orders.show', $order) }}'">
                 <td class="px-4 py-3 text-white font-medium">{{ $order->order_number }}</td>
-                <td class="px-4 py-3 text-white/70">{{ $order->user->name ?? '-' }}</td>
+                <td class="px-4 py-3">
+                    @if($order->user)
+                    <a href="{{ route('admin.customers.show', $order->user) }}" class="text-white/70 hover:text-brand-red" onclick="event.stopPropagation()">{{ $order->user->name }}</a>
+                    @else <span class="text-white/40">-</span> @endif
+                </td>
                 <td class="px-4 py-3 text-white">{{ number_format($order->total) }} ج.م</td>
                 <td class="px-4 py-3 text-white/60">{{ $order->payment_method }}</td>
                 <td class="px-4 py-3">
-                    <span class="text-xs px-2 py-1 rounded-full {{ $order->status === 'DELIVERED' ? 'bg-green-500/10 text-green-400' : ($order->status === 'PENDING' ? 'bg-yellow-500/10 text-yellow-400' : 'bg-blue-500/10 text-blue-400') }}">
-                        {{ $order->status }}
-                    </span>
+                    <span class="text-xs px-2 py-1 rounded-full {{ $sc[$order->status] ?? 'bg-white/10 text-white/60' }}">{{ $sl[$order->status] ?? $order->status }}</span>
                 </td>
                 <td class="px-4 py-3 text-white/40">{{ $order->created_at->format('m/d') }}</td>
                 <td class="px-4 py-3">
-                    <a href="{{ route('admin.orders.show', $order) }}" class="text-brand-red text-xs hover:underline">عرض</a>
+                    <span class="text-brand-red text-xs">عرض</span>
                 </td>
             </tr>
             @endforeach

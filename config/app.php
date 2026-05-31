@@ -123,4 +123,7 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    'instapay_number' => env('INSTAPAY_NUMBER', '01XXXXXXXXX'),
+    'instapay_name' => env('INSTAPAY_NAME', 'ON TRACK Store'),
+
 ];

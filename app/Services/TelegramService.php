@@ -59,11 +59,13 @@ class TelegramService
             'WALLET' => 'محفظة',
         ];
         $payment = $paymentLabels[$order->payment_method] ?? $order->payment_method;
+        $paymentType = $order->payment_type === 'SHIPPING_ONLY' ? '(شحن فقط)' : ($order->payment_type === 'FULL' ? '(دفع كامل)' : '');
 
         $message = "🛒 <b>طلب جديد #{$order->order_number}</b>\n\n"
             . "👤 العميل: {$customerName}\n"
             . "📍 الموقع: {$location}\n"
-            . "💳 الدفع: {$payment}\n\n"
+            . "💳 الدفع: {$payment} {$paymentType}\n"
+            . ($order->payment_proof ? "📎 إثبات دفع مرفق\n" : "") . "\n"
             . "📦 المنتجات:\n{$items}\n\n"
             . "💰 المجموع: " . number_format($order->total) . " ج.م\n"
             . "🚚 الشحن: " . number_format($order->shipping_cost) . " ج.م";

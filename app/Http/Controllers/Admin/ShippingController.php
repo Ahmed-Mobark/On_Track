@@ -70,6 +70,23 @@ class ShippingController extends Controller
     public function getCost(Request $request)
     {
         $cost = ShippingRate::getCost($request->governorate, $request->city);
+
+        // Apply free shipping threshold
+        $freeShippingThreshold = (float) \App\Models\SiteSetting::get('free_shipping_threshold', 2000);
+        $cart = session('cart', []);
+        $subtotal = 0;
+        foreach ($cart as $cartItem) {
+            $variant = \App\Models\ProductVariant::find($cartItem['variant_id']);
+            $product = \App\Models\Product::find($cartItem['product_id']);
+            if ($variant && $product) {
+                $subtotal += ((float) ($variant->price ?? $product->base_price)) * $cartItem['quantity'];
+            }
+        }
+
+        if ($freeShippingThreshold > 0 && $subtotal >= $freeShippingThreshold) {
+            $cost = 0;
+        }
+
         return response()->json(['cost' => $cost]);
     }
 
