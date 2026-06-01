@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Mail\OrderStatusMail;
 use App\Models\Order;
 use App\Models\ProductVariant;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 
@@ -81,6 +82,13 @@ class OrderController extends Controller
 
         // Send email notification to customer
         $this->notifyCustomer($order, $newStatus);
+
+        // Send push notification
+        try {
+            app(NotificationService::class)->orderStatusChanged($order, $newStatus);
+        } catch (\Exception $e) {
+            // Don't block
+        }
 
         return back()->with('success', 'تم تحديث حالة الطلب وإرسال إشعار للعميل');
     }
@@ -170,6 +178,9 @@ class OrderController extends Controller
             if ($points > 0) {
                 $label = $order->payment_type === 'FULL' ? 'نقاط طلب (دفع كامل)' : 'نقاط طلب';
                 $wallet->addPoints($points, "{$label} #{$order->order_number}", 'Order', $order->id);
+
+                // Notify about points earned
+                app(NotificationService::class)->pointsEarned($order->user, $points, $order->order_number);
             }
         } catch (\Exception $e) {
             // Don't block order
@@ -183,6 +194,9 @@ class OrderController extends Controller
             $wallet = $order->user->getOrCreateWallet();
             $refundAmount = (float) $order->deposit_amount;
             $wallet->addBalance($refundAmount, "استرداد طلب مرتجع #{$order->order_number}", 'Refund', $order->id);
+
+            // Notify about wallet refund
+            app(NotificationService::class)->walletCredited($order->user, $refundAmount, "استرداد طلب مرتجع #{$order->order_number}");
         } catch (\Exception $e) {
             // Don't block
         }

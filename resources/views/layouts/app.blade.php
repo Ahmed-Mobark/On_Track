@@ -135,6 +135,14 @@
                     @endif
                 </a>
                 @auth
+                    <a href="{{ route('notifications.index') }}" class="text-white/60 hover:text-white relative p-2 rounded-lg hover:bg-white/5 transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+                        @if(auth()->user()->unreadNotificationsCount() > 0)
+                            <span id="notification-badge" class="absolute top-0.5 right-0.5 bg-brand-red text-white text-[9px] w-4 h-4 rounded-full flex items-center justify-center font-bold leading-none">{{ auth()->user()->unreadNotificationsCount() }}</span>
+                        @else
+                            <span id="notification-badge" class="absolute top-0.5 right-0.5 bg-brand-red text-white text-[9px] w-4 h-4 rounded-full flex items-center justify-center font-bold leading-none" style="display:none"></span>
+                        @endif
+                    </a>
                     <a href="{{ route('wishlist') }}" class="text-white/60 hover:text-white p-2 rounded-lg hover:bg-white/5 transition-colors">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
                     </a>
@@ -487,6 +495,145 @@
         });
     });
     </script>
+
+    {{-- Notification Sound + System Notifications + Polling --}}
+    @auth
+    <script>
+        // Notification sound - pleasant two-tone chime
+        window._notifSound = function() {
+            try {
+                var ctx = new (window.AudioContext || window.webkitAudioContext)();
+                [0, 0.15].forEach(function(delay, i) {
+                    var osc = ctx.createOscillator();
+                    var gain = ctx.createGain();
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.frequency.value = i === 0 ? 880 : 1100;
+                    osc.type = 'sine';
+                    gain.gain.setValueAtTime(0.3, ctx.currentTime + delay);
+                    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + delay + 0.3);
+                    osc.start(ctx.currentTime + delay);
+                    osc.stop(ctx.currentTime + delay + 0.3);
+                });
+            } catch(e) {}
+        };
+
+        // Show system notification (works even when tab is not focused)
+        window._showSystemNotification = function(title, body, url) {
+            window._notifSound();
+            showToast(title);
+
+            // Show native browser notification
+            if ('Notification' in window && Notification.permission === 'granted') {
+                var notif = new Notification(title, {
+                    body: body || '',
+                    icon: '/images/brand/logo.png',
+                    badge: '/images/brand/logo.png',
+                    dir: 'rtl',
+                    silent: false,
+                    requireInteraction: false,
+                    tag: 'ontrack-' + Date.now(),
+                });
+                notif.onclick = function() {
+                    window.focus();
+                    if (url) window.location.href = url;
+                    notif.close();
+                };
+            }
+
+            // Update badge
+            var badge = document.getElementById('notification-badge');
+            if (badge) {
+                var current = parseInt(badge.textContent) || 0;
+                badge.textContent = current + 1;
+                badge.style.display = '';
+            }
+        };
+
+        // Request notification permission early
+        if ('Notification' in window && Notification.permission === 'default') {
+            setTimeout(function() { Notification.requestPermission(); }, 5000);
+        }
+
+        // Poll for new notifications every 30 seconds
+        (function() {
+            var lastCount = {{ auth()->user()->unreadNotificationsCount() }};
+            setInterval(function() {
+                fetch('/notifications/unread-count', {
+                    headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+                })
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    var badge = document.getElementById('notification-badge');
+                    if (badge) {
+                        if (data.count > 0) {
+                            badge.textContent = data.count;
+                            badge.style.display = '';
+                        } else {
+                            badge.style.display = 'none';
+                        }
+                    }
+                    if (data.count > lastCount) {
+                        window._showSystemNotification('ON TRACK', 'لديك ' + (data.count - lastCount) + ' إشعار جديد', '/notifications');
+                    }
+                    lastCount = data.count;
+                });
+            }, 30000);
+        })();
+    </script>
+    @endauth
+
+    {{-- Firebase Push Notifications --}}
+    @auth
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+        import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging.js";
+
+        const firebaseConfig = {!! json_encode(config('firebase.web_config', [])) !!};
+
+        if (firebaseConfig.apiKey) {
+            const app = initializeApp(firebaseConfig);
+            const messaging = getMessaging(app);
+
+            // Request permission and get token
+            if (Notification.permission === 'default') {
+                setTimeout(function() {
+                    Notification.requestPermission().then(function(permission) {
+                        if (permission === 'granted') registerFCM(messaging);
+                    });
+                }, 3000);
+            } else if (Notification.permission === 'granted') {
+                registerFCM(messaging);
+            }
+
+            function registerFCM(messaging) {
+                var tokenOpts = firebaseConfig.vapidKey ? { vapidKey: firebaseConfig.vapidKey } : {};
+                getToken(messaging, tokenOpts).then(function(token) {
+                    if (token) {
+                        fetch('/api/fcm-token', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                            },
+                            body: JSON.stringify({ token: token })
+                        });
+                    }
+                }).catch(function(err) { console.log('FCM token error:', err); });
+            }
+
+            // Handle foreground messages - show system notification with sound
+            onMessage(messaging, function(payload) {
+                var title = payload.notification?.title || 'ON TRACK';
+                var body = payload.notification?.body || '';
+                var url = payload.data?.url || '/notifications';
+                if (window._showSystemNotification) {
+                    window._showSystemNotification(title, body, url);
+                }
+            });
+        }
+    </script>
+    @endauth
 
     @stack('scripts')
 </body>

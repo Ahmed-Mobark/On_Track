@@ -21,6 +21,8 @@ use App\Http\Controllers\Admin\AnalyticsController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\ContactMessageController;
 use App\Http\Controllers\Shop\ContactController;
+use App\Http\Controllers\Shop\NotificationController;
+use App\Http\Controllers\Admin\NotificationController as AdminNotificationController;
 
 // ==================== WEBHOOKS (no CSRF) ====================
 Route::post('/webhooks/bosta', [\App\Http\Controllers\Webhook\BostaWebhookController::class, 'handle'])
@@ -89,6 +91,13 @@ Route::middleware('auth')->group(function () {
 
     // Points & Wallet
     Route::post('/account/redeem-points', [AccountController::class, 'redeemPoints'])->name('account.redeem-points');
+
+    // Notifications
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::post('/notifications/{notification}/read', [NotificationController::class, 'markAsRead'])->name('notifications.read');
+    Route::post('/notifications/mark-all-read', [NotificationController::class, 'markAllRead'])->name('notifications.mark-all-read');
+    Route::get('/notifications/unread-count', [NotificationController::class, 'unreadCount'])->name('notifications.unread-count');
+    Route::post('/api/fcm-token', [NotificationController::class, 'saveFcmToken'])->name('api.fcm-token');
 });
 
 // ==================== ADMIN ====================
@@ -149,4 +158,10 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     Route::get('/messages', [ContactMessageController::class, 'index'])->name('messages.index');
     Route::get('/messages/{message}', [ContactMessageController::class, 'show'])->name('messages.show');
     Route::delete('/messages/{message}', [ContactMessageController::class, 'destroy'])->name('messages.destroy');
+
+    // Notifications
+    Route::get('/notifications', [AdminNotificationController::class, 'index'])->name('notifications.index');
+    Route::get('/notifications/send', [AdminNotificationController::class, 'send'])->name('notifications.send');
+    Route::post('/notifications/send', [AdminNotificationController::class, 'store'])->name('notifications.store');
+    Route::post('/notifications/mark-all-read', [AdminNotificationController::class, 'markAllRead'])->name('notifications.mark-all-read');
 });

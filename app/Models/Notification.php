@@ -9,8 +9,9 @@ class Notification extends Model
 {
     use HasUuids;
 
-    public $timestamps = false;
-    protected $fillable = ['user_id', 'title', 'message', 'is_read', 'type'];
-    protected function casts(): array { return ['is_read' => 'boolean']; }
+    const UPDATED_AT = null;
+
+    protected $fillable = ['user_id', 'title', 'message', 'is_read', 'type', 'link'];
+    protected function casts(): array { return ['is_read' => 'boolean', 'created_at' => 'datetime']; }
     public function user() { return $this->belongsTo(User::class); }
 }

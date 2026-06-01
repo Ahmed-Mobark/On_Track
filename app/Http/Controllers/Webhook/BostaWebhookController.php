@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Webhook;
 
 use App\Http\Controllers\Controller;
 use App\Models\Order;
+use App\Services\NotificationService;
 use App\Services\TelegramService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -70,6 +71,21 @@ class BostaWebhookController extends Controller
 
         // Notify admin via Telegram
         $this->notifyStatusChange($order, $bostaStatus, $newShipmentStatus);
+
+        // Send push notification to customer for key shipment updates
+        if (in_array($newShipmentStatus, ['OUT_FOR_DELIVERY', 'DELIVERED', 'RETURNED', 'DELIVERY_FAILED'])) {
+            try {
+                $statusMap = [
+                    'OUT_FOR_DELIVERY' => 'SHIPPED',
+                    'DELIVERED' => 'DELIVERED',
+                    'RETURNED' => 'RETURNED',
+                    'DELIVERY_FAILED' => 'CANCELLED',
+                ];
+                app(NotificationService::class)->orderStatusChanged($order, $statusMap[$newShipmentStatus]);
+            } catch (\Exception $e) {
+                // Don't block webhook
+            }
+        }
 
         return response()->json(['message' => 'OK']);
     }

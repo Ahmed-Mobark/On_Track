@@ -11,7 +11,7 @@ class User extends Authenticatable
     use HasUuids, Notifiable;
 
     protected $fillable = [
-        'email', 'password', 'first_name', 'last_name', 'phone', 'role', 'avatar', 'is_active',
+        'email', 'password', 'first_name', 'last_name', 'phone', 'role', 'avatar', 'is_active', 'fcm_token',
     ];
 
     protected $hidden = ['password'];
@@ -50,6 +50,16 @@ class User extends Authenticatable
     public function wallet()
     {
         return $this->hasOne(Wallet::class);
+    }
+
+    public function userNotifications()
+    {
+        return $this->hasMany(Notification::class);
+    }
+
+    public function unreadNotificationsCount(): int
+    {
+        return $this->userNotifications()->where('is_read', false)->count();
     }
 
     public function getOrCreateWallet(): Wallet
