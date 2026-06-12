@@ -282,7 +282,7 @@
     {{-- Global image processing: accepts any image (incl. HEIC), converts HEIC→JPEG and compresses large images while keeping quality --}}
     <script>
         (function () {
-            var HEIC_LIB = 'https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js';
+            var HEIC_LIB = '{{ asset('js/heic2any.min.js') }}';
             var heicLibPromise = null;
 
             function ensureHeicLib() {
@@ -329,7 +329,14 @@
                     prep = ensureHeicLib().then(function () {
                         return heic2any({ blob: file, toType: 'image/jpeg', quality: quality });
                     }).then(function (blob) {
+                        // heic2any can return an array of blobs for multi-image HEIC
+                        if (Array.isArray(blob)) blob = blob[0];
                         return new File([blob], name + '.jpg', { type: 'image/jpeg' });
+                    }).catch(function (err) {
+                        // Mark HEIC conversion failure so the caller can skip it (never upload raw HEIC)
+                        var e = new Error('HEIC_CONVERT_FAILED');
+                        e.original = err;
+                        throw e;
                     });
                 }
 
@@ -375,12 +382,17 @@
                 if (areaText) areaText.textContent = 'جاري معالجة الصور...';
 
                 var dt = new DataTransfer();
+                var skipped = 0;
                 var chain = Promise.resolve();
                 files.forEach(function (f) {
                     chain = chain.then(function () {
                         return compressImageFile(f).then(function (out) {
                             dt.items.add(out);
-                        }).catch(function () {
+                        }).catch(function (err) {
+                            var isHeic = /heic|heif/i.test(f.type) || /\.(heic|heif)$/i.test(f.name || '');
+                            // For HEIC we must NOT upload the raw file (browsers can't display it). Skip it.
+                            if (isHeic) { skipped++; return; }
+                            // For normal images, a failed compression is safe to upload as-is.
                             dt.items.add(f);
                         });
                     });
@@ -389,6 +401,11 @@
                 chain.then(function () {
                     try { input.files = dt.files; } catch (e) {}
                     if (areaText && originalText !== null) areaText.textContent = originalText;
+                    if (skipped && typeof showToast === 'function') {
+                        showToast('تعذّر تحويل ' + skipped + ' صورة HEIC، جرّب مرة أخرى');
+                    } else if (skipped) {
+                        alert('تعذّر تحويل ' + skipped + ' صورة HEIC، جرّب مرة أخرى');
+                    }
                     if (onDone) onDone(input);
                 });
             };
