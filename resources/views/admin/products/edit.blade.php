@@ -126,8 +126,8 @@
                      onclick="this.nextElementSibling.click()">
                     <p class="text-white/30 text-xs">+ إضافة صور {{ $colorName }}</p>
                 </div>
-                <input type="file" name="color_images[{{ $colorName }}][]" multiple accept="image/jpeg,image/png,image/webp" class="hidden"
-                       onchange="previewInline(this)">
+                <input type="file" name="color_images[{{ $colorName }}][]" multiple accept="image/*,.heic,.heif" class="hidden"
+                       onchange="processImageInput(this, previewInline)">
                 <div class="previews grid grid-cols-4 gap-2 mt-2"></div>
             </div>
         @endforeach

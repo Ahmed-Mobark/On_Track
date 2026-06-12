@@ -278,6 +278,122 @@
             });
         }
     </script>
+
+    {{-- Global image processing: accepts any image (incl. HEIC), converts HEIC→JPEG and compresses large images while keeping quality --}}
+    <script>
+        (function () {
+            var HEIC_LIB = 'https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js';
+            var heicLibPromise = null;
+
+            function ensureHeicLib() {
+                if (window.heic2any) return Promise.resolve();
+                if (heicLibPromise) return heicLibPromise;
+                heicLibPromise = new Promise(function (resolve, reject) {
+                    var s = document.createElement('script');
+                    s.src = HEIC_LIB;
+                    s.onload = resolve;
+                    s.onerror = reject;
+                    document.head.appendChild(s);
+                });
+                return heicLibPromise;
+            }
+
+            function readAsDataURL(file) {
+                return new Promise(function (resolve, reject) {
+                    var r = new FileReader();
+                    r.onload = function (e) { resolve(e.target.result); };
+                    r.onerror = reject;
+                    r.readAsDataURL(file);
+                });
+            }
+
+            function loadImage(src) {
+                return new Promise(function (resolve, reject) {
+                    var img = new Image();
+                    img.onload = function () { resolve(img); };
+                    img.onerror = reject;
+                    img.src = src;
+                });
+            }
+
+            // maxDim: longest side cap (keeps proportions). quality: JPEG quality (0.92 ~ visually identical)
+            function compressImageFile(file, opts) {
+                opts = opts || {};
+                var maxDim = opts.maxDim || 2400;
+                var quality = opts.quality || 0.92;
+                var name = (file.name || 'image').replace(/\.[^.]+$/, '');
+                var isHeic = /heic|heif/i.test(file.type) || /\.(heic|heif)$/i.test(file.name || '');
+
+                var prep = Promise.resolve(file);
+                if (isHeic) {
+                    prep = ensureHeicLib().then(function () {
+                        return heic2any({ blob: file, toType: 'image/jpeg', quality: quality });
+                    }).then(function (blob) {
+                        return new File([blob], name + '.jpg', { type: 'image/jpeg' });
+                    });
+                }
+
+                return prep.then(function (working) {
+                    return readAsDataURL(working).then(loadImage).then(function (img) {
+                        var w = img.naturalWidth || img.width;
+                        var h = img.naturalHeight || img.height;
+                        var scale = Math.min(1, maxDim / Math.max(w, h));
+
+                        // Small enough already and not HEIC → keep original untouched
+                        if (scale === 1 && !isHeic && file.size <= 1.5 * 1024 * 1024) {
+                            return working;
+                        }
+
+                        var canvas = document.createElement('canvas');
+                        canvas.width = Math.round(w * scale);
+                        canvas.height = Math.round(h * scale);
+                        var ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+                        return new Promise(function (resolve) {
+                            canvas.toBlob(function (blob) {
+                                if (!blob) { resolve(working); return; }
+                                // For non-HEIC, only use compressed version if it's actually smaller
+                                if (!isHeic && blob.size >= working.size) { resolve(working); return; }
+                                resolve(new File([blob], name + '.jpg', { type: 'image/jpeg' }));
+                            }, 'image/jpeg', quality);
+                        });
+                    }).catch(function () {
+                        return working; // fall back to whatever we have
+                    });
+                });
+            }
+
+            // Processes the files of a file input in place, then calls onDone(input)
+            window.processImageInput = function (input, onDone) {
+                var files = Array.prototype.slice.call(input.files || []);
+                if (!files.length) { if (onDone) onDone(input); return; }
+
+                var area = input.previousElementSibling;
+                var areaText = area && area.querySelector ? area.querySelector('p') : null;
+                var originalText = areaText ? areaText.textContent : null;
+                if (areaText) areaText.textContent = 'جاري معالجة الصور...';
+
+                var dt = new DataTransfer();
+                var chain = Promise.resolve();
+                files.forEach(function (f) {
+                    chain = chain.then(function () {
+                        return compressImageFile(f).then(function (out) {
+                            dt.items.add(out);
+                        }).catch(function () {
+                            dt.items.add(f);
+                        });
+                    });
+                });
+
+                chain.then(function () {
+                    try { input.files = dt.files; } catch (e) {}
+                    if (areaText && originalText !== null) areaText.textContent = originalText;
+                    if (onDone) onDone(input);
+                });
+            };
+        })();
+    </script>
     @stack('scripts')
 </body>
 </html>

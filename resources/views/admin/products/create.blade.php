@@ -207,8 +207,8 @@ function buildColorSection(color, hex) {
                      onclick="this.nextElementSibling.click()">
                     <p class="text-white/30 text-sm">+ ارفع صور ${color}</p>
                 </div>
-                <input type="file" name="color_images[${color}][]" multiple accept="image/jpeg,image/png,image/webp" class="hidden"
-                       onchange="previewColorImages(this)">
+                <input type="file" name="color_images[${color}][]" multiple accept="image/*,.heic,.heif" class="hidden"
+                       onchange="processImageInput(this, previewColorImages)">
                 <div class="previews grid grid-cols-4 gap-2 mt-2"></div>
             </div>
 
