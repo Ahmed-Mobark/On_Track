@@ -90,7 +90,14 @@
 
                     {{-- Size --}}
                     <div>
-                        <label class="block text-white/70 text-sm font-medium mb-2">المقاس</label>
+                        <div class="flex items-center justify-between mb-2">
+                            <label class="block text-white/70 text-sm font-medium">المقاس</label>
+                            <button type="button" onclick="document.getElementById('size-guide-modal').classList.remove('hidden')"
+                                class="flex items-center gap-1 text-xs text-brand-red hover:text-brand-red-dark transition-colors">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                                دليل المقاسات
+                            </button>
+                        </div>
                         <div class="flex flex-wrap gap-2" id="size-options"></div>
                     </div>
 
@@ -199,7 +206,271 @@
 </div>
 
 
+{{-- Size Guide Modal --}}
+<div id="size-guide-modal" class="fixed inset-0 z-[100] hidden">
+    <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" onclick="document.getElementById('size-guide-modal').classList.add('hidden')"></div>
+    <div class="relative min-h-screen flex items-center justify-center p-4">
+        <div class="bg-brand-dark rounded-2xl border border-white/10 w-full max-w-2xl relative max-h-[90vh] overflow-y-auto">
+            {{-- Header --}}
+            <div class="sticky top-0 bg-brand-dark border-b border-white/10 px-6 py-4 flex items-center justify-between z-10 rounded-t-2xl">
+                <h2 class="text-lg font-bold text-white">دليل المقاسات</h2>
+                <button onclick="document.getElementById('size-guide-modal').classList.add('hidden')" class="text-white/40 hover:text-white transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+
+            <div class="p-6">
+                {{-- Unit Toggle --}}
+                <div class="flex items-center justify-between mb-6">
+                    <p class="text-white/50 text-sm">كل القياسات بالسنتيمتر (CM)</p>
+                    <div class="flex items-center gap-2 bg-white/5 rounded-full p-1">
+                        <button onclick="toggleUnit('cm')" id="unit-cm" class="px-3 py-1 rounded-full text-xs font-bold bg-white text-black transition-all">CM</button>
+                        <button onclick="toggleUnit('in')" id="unit-in" class="px-3 py-1 rounded-full text-xs font-bold text-white/50 transition-all">IN</button>
+                    </div>
+                </div>
+
+                {{-- Body Illustration + How to measure --}}
+                <div class="bg-white/[0.03] rounded-xl p-4 mb-6">
+                    <h3 class="text-sm font-semibold text-white mb-3">ازاي تاخد مقاساتك</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm text-white/60">
+                        <div class="flex items-start gap-2">
+                            <span class="w-5 h-5 rounded-full bg-brand-red/20 text-brand-red text-xs flex items-center justify-center shrink-0 mt-0.5 font-bold">1</span>
+                            <div>
+                                <span class="text-white/80 font-medium">محيط الصدر</span>
+                                <p class="text-xs mt-0.5">قيس حوالين أعرض منطقة في الصدر تحت الإبط</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-2">
+                            <span class="w-5 h-5 rounded-full bg-brand-red/20 text-brand-red text-xs flex items-center justify-center shrink-0 mt-0.5 font-bold">2</span>
+                            <div>
+                                <span class="text-white/80 font-medium">محيط الوسط</span>
+                                <p class="text-xs mt-0.5">قيس حوالين أنحف منطقة في الوسط</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-2">
+                            <span class="w-5 h-5 rounded-full bg-brand-red/20 text-brand-red text-xs flex items-center justify-center shrink-0 mt-0.5 font-bold">3</span>
+                            <div>
+                                <span class="text-white/80 font-medium">الطول</span>
+                                <p class="text-xs mt-0.5">طولك من الرأس للقدم واقف مستقيم</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-2">
+                            <span class="w-5 h-5 rounded-full bg-brand-red/20 text-brand-red text-xs flex items-center justify-center shrink-0 mt-0.5 font-bold">4</span>
+                            <div>
+                                <span class="text-white/80 font-medium">الوزن</span>
+                                <p class="text-xs mt-0.5">وزنك التقريبي بالكيلوجرام</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Size Table - Tops (T-shirts, Hoodies, Jackets) --}}
+                <div class="mb-6">
+                    <h3 class="text-sm font-semibold text-white mb-3 flex items-center gap-2">
+                        <svg class="w-4 h-4 text-brand-red" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"/></svg>
+                        تيشيرتات / هوديز / جاكيتات
+                    </h3>
+                    <div class="overflow-x-auto rounded-lg border border-white/10">
+                        <table class="w-full text-sm" id="tops-table">
+                            <thead>
+                                <tr class="bg-white/5">
+                                    <th class="px-3 py-2.5 text-right text-white/70 font-semibold border-b border-white/10">المقاس</th>
+                                    <th class="px-3 py-2.5 text-center text-white/70 font-semibold border-b border-white/10">الصدر</th>
+                                    <th class="px-3 py-2.5 text-center text-white/70 font-semibold border-b border-white/10">الوسط</th>
+                                    <th class="px-3 py-2.5 text-center text-white/70 font-semibold border-b border-white/10">الطول</th>
+                                    <th class="px-3 py-2.5 text-center text-white/70 font-semibold border-b border-white/10">الوزن</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-white/5">
+                                <tr class="hover:bg-white/[0.02] transition-colors">
+                                    <td class="px-3 py-2.5 font-bold text-white">S</td>
+                                    <td class="px-3 py-2.5 text-center text-white/60"><span data-cm="88-92">88-92</span></td>
+                                    <td class="px-3 py-2.5 text-center text-white/60"><span data-cm="73-77">73-77</span></td>
+                                    <td class="px-3 py-2.5 text-center text-white/60"><span data-cm="165-170">165-170</span></td>
+                                    <td class="px-3 py-2.5 text-center text-white/60">55-65 kg</td>
+                                </tr>
+                                <tr class="hover:bg-white/[0.02] transition-colors">
+                                    <td class="px-3 py-2.5 font-bold text-white">M</td>
+                                    <td class="px-3 py-2.5 text-center text-white/60"><span data-cm="92-96">92-96</span></td>
+                                    <td class="px-3 py-2.5 text-center text-white/60"><span data-cm="78-82">78-82</span></td>
+                                    <td class="px-3 py-2.5 text-center text-white/60"><span data-cm="170-175">170-175</span></td>
+                                    <td class="px-3 py-2.5 text-center text-white/60">65-75 kg</td>
+                                </tr>
+                                <tr class="hover:bg-white/[0.02] transition-colors">
+                                    <td class="px-3 py-2.5 font-bold text-white">L</td>
+                                    <td class="px-3 py-2.5 text-center text-white/60"><span data-cm="96-102">96-102</span></td>
+                                    <td class="px-3 py-2.5 text-center text-white/60"><span data-cm="83-88">83-88</span></td>
+                                    <td class="px-3 py-2.5 text-center text-white/60"><span data-cm="175-180">175-180</span></td>
+                                    <td class="px-3 py-2.5 text-center text-white/60">75-85 kg</td>
+                                </tr>
+                                <tr class="hover:bg-white/[0.02] transition-colors">
+                                    <td class="px-3 py-2.5 font-bold text-white">XL</td>
+                                    <td class="px-3 py-2.5 text-center text-white/60"><span data-cm="102-108">102-108</span></td>
+                                    <td class="px-3 py-2.5 text-center text-white/60"><span data-cm="89-95">89-95</span></td>
+                                    <td class="px-3 py-2.5 text-center text-white/60"><span data-cm="178-185">178-185</span></td>
+                                    <td class="px-3 py-2.5 text-center text-white/60">85-100 kg</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                {{-- Size Table - Bottoms (Shorts, Pants) --}}
+                <div class="mb-6">
+                    <h3 class="text-sm font-semibold text-white mb-3 flex items-center gap-2">
+                        <svg class="w-4 h-4 text-brand-red" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"/></svg>
+                        شورتات / بنطلونات
+                    </h3>
+                    <div class="overflow-x-auto rounded-lg border border-white/10">
+                        <table class="w-full text-sm" id="bottoms-table">
+                            <thead>
+                                <tr class="bg-white/5">
+                                    <th class="px-3 py-2.5 text-right text-white/70 font-semibold border-b border-white/10">المقاس</th>
+                                    <th class="px-3 py-2.5 text-center text-white/70 font-semibold border-b border-white/10">الوسط</th>
+                                    <th class="px-3 py-2.5 text-center text-white/70 font-semibold border-b border-white/10">الأرداف</th>
+                                    <th class="px-3 py-2.5 text-center text-white/70 font-semibold border-b border-white/10">الطول</th>
+                                    <th class="px-3 py-2.5 text-center text-white/70 font-semibold border-b border-white/10">الوزن</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-white/5">
+                                <tr class="hover:bg-white/[0.02] transition-colors">
+                                    <td class="px-3 py-2.5 font-bold text-white">S</td>
+                                    <td class="px-3 py-2.5 text-center text-white/60"><span data-cm="73-77">73-77</span></td>
+                                    <td class="px-3 py-2.5 text-center text-white/60"><span data-cm="90-94">90-94</span></td>
+                                    <td class="px-3 py-2.5 text-center text-white/60"><span data-cm="165-170">165-170</span></td>
+                                    <td class="px-3 py-2.5 text-center text-white/60">55-65 kg</td>
+                                </tr>
+                                <tr class="hover:bg-white/[0.02] transition-colors">
+                                    <td class="px-3 py-2.5 font-bold text-white">M</td>
+                                    <td class="px-3 py-2.5 text-center text-white/60"><span data-cm="78-82">78-82</span></td>
+                                    <td class="px-3 py-2.5 text-center text-white/60"><span data-cm="95-99">95-99</span></td>
+                                    <td class="px-3 py-2.5 text-center text-white/60"><span data-cm="170-175">170-175</span></td>
+                                    <td class="px-3 py-2.5 text-center text-white/60">65-75 kg</td>
+                                </tr>
+                                <tr class="hover:bg-white/[0.02] transition-colors">
+                                    <td class="px-3 py-2.5 font-bold text-white">L</td>
+                                    <td class="px-3 py-2.5 text-center text-white/60"><span data-cm="83-88">83-88</span></td>
+                                    <td class="px-3 py-2.5 text-center text-white/60"><span data-cm="100-104">100-104</span></td>
+                                    <td class="px-3 py-2.5 text-center text-white/60"><span data-cm="175-180">175-180</span></td>
+                                    <td class="px-3 py-2.5 text-center text-white/60">75-85 kg</td>
+                                </tr>
+                                <tr class="hover:bg-white/[0.02] transition-colors">
+                                    <td class="px-3 py-2.5 font-bold text-white">XL</td>
+                                    <td class="px-3 py-2.5 text-center text-white/60"><span data-cm="89-95">89-95</span></td>
+                                    <td class="px-3 py-2.5 text-center text-white/60"><span data-cm="105-110">105-110</span></td>
+                                    <td class="px-3 py-2.5 text-center text-white/60"><span data-cm="178-185">178-185</span></td>
+                                    <td class="px-3 py-2.5 text-center text-white/60">85-100 kg</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                {{-- Quick Size Finder --}}
+                <div class="bg-brand-red/5 border border-brand-red/20 rounded-xl p-4">
+                    <h3 class="text-sm font-semibold text-white mb-3 flex items-center gap-2">
+                        <svg class="w-4 h-4 text-brand-red" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                        اعرف مقاسك بسرعة
+                    </h3>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="text-xs text-white/50 mb-1 block">الوزن (kg)</label>
+                            <input type="number" id="sg-weight" placeholder="75" min="40" max="150"
+                                   class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-brand-red placeholder-white/20">
+                        </div>
+                        <div>
+                            <label class="text-xs text-white/50 mb-1 block">الطول (cm)</label>
+                            <input type="number" id="sg-height" placeholder="175" min="150" max="210"
+                                   class="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-brand-red placeholder-white/20">
+                        </div>
+                    </div>
+                    <button type="button" onclick="findMySize()"
+                            class="mt-3 w-full bg-brand-red hover:bg-brand-red-dark text-white py-2.5 rounded-lg text-sm font-bold transition-colors">
+                        اعرف مقاسك
+                    </button>
+                    <div id="sg-result" class="hidden mt-3 text-center">
+                        <p class="text-white/60 text-sm">المقاس المناسب ليك:</p>
+                        <p class="text-3xl font-black text-brand-red mt-1" id="sg-result-size"></p>
+                        <p class="text-xs text-white/40 mt-1" id="sg-result-note"></p>
+                    </div>
+                </div>
+
+                {{-- Tips --}}
+                <div class="mt-4 text-xs text-white/30 space-y-1">
+                    <p>* المقاسات تقريبية وممكن تختلف بفرق 1-2 سم</p>
+                    <p>* لو بين مقاسين، ننصحك تاخد المقاس الأكبر للراحة أثناء التمرين</p>
+                    <p>* الملابس الرياضية مصممة بقصة مريحة (Regular Fit)</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 @push('scripts')
+<script>
+    // Size Guide - Unit toggle
+    function toggleUnit(unit) {
+        var cmBtn = document.getElementById('unit-cm');
+        var inBtn = document.getElementById('unit-in');
+        var spans = document.querySelectorAll('#size-guide-modal [data-cm]');
+
+        if (unit === 'in') {
+            cmBtn.className = 'px-3 py-1 rounded-full text-xs font-bold text-white/50 transition-all';
+            inBtn.className = 'px-3 py-1 rounded-full text-xs font-bold bg-white text-black transition-all';
+            spans.forEach(function(s) {
+                var cm = s.getAttribute('data-cm');
+                var parts = cm.split('-');
+                var converted = parts.map(function(v) { return (parseFloat(v) / 2.54).toFixed(1); }).join('-');
+                s.textContent = converted;
+            });
+        } else {
+            cmBtn.className = 'px-3 py-1 rounded-full text-xs font-bold bg-white text-black transition-all';
+            inBtn.className = 'px-3 py-1 rounded-full text-xs font-bold text-white/50 transition-all';
+            spans.forEach(function(s) {
+                s.textContent = s.getAttribute('data-cm');
+            });
+        }
+    }
+
+    // Quick size finder
+    function findMySize() {
+        var weight = parseFloat(document.getElementById('sg-weight').value);
+        var height = parseFloat(document.getElementById('sg-height').value);
+        if (!weight || !height) { showToast('ادخل الوزن والطول'); return; }
+
+        var size = 'M';
+        var note = '';
+
+        if (weight <= 65 && height <= 170) {
+            size = 'S';
+            note = 'مقاس صغير - مناسب للجسم النحيف';
+        } else if (weight <= 75 && height <= 178) {
+            size = 'M';
+            note = 'مقاس وسط - الأكثر شيوعاً';
+        } else if (weight <= 88 && height <= 183) {
+            size = 'L';
+            note = 'مقاس كبير - مناسب للجسم الرياضي';
+        } else {
+            size = 'XL';
+            note = 'مقاس كبير جداً - راحة إضافية';
+        }
+
+        // Edge cases
+        if (weight > 95 && height < 175) {
+            size = 'XL';
+            note = 'ننصح بـ XL عشان الراحة في منطقة الوسط';
+        }
+        if (weight < 60 && height > 180) {
+            size = 'M';
+            note = 'M هيكون مناسب للطول مع الجسم النحيف';
+        }
+
+        document.getElementById('sg-result').classList.remove('hidden');
+        document.getElementById('sg-result-size').textContent = size;
+        document.getElementById('sg-result-note').textContent = note;
+    }
+</script>
+
 <script>
     function shareProduct() {
         const shareData = {
