@@ -111,10 +111,11 @@
                     <div class="grid grid-cols-4 gap-2 mb-3">
                         @foreach($imagesByColor[$colorName] as $image)
                             <div class="relative rounded-lg overflow-hidden border border-white/10">
-                                <img src="{{ $image->image_url }}" class="w-full aspect-square object-cover">
-                                <label class="absolute top-1 right-1 flex items-center gap-1 bg-black/60 rounded-full px-1.5 py-0.5 cursor-pointer">
-                                    <input type="checkbox" name="delete_images[]" value="{{ $image->id }}">
-                                    <span class="text-red-400 text-[9px]">حذف</span>
+                                <img src="{{ $image->image_url }}" class="w-full aspect-square object-cover bg-white/5">
+                                <label class="absolute inset-0 cursor-pointer">
+                                    <input type="checkbox" name="delete_images[]" value="{{ $image->id }}" class="peer hidden">
+                                    <span class="absolute top-1 right-1 w-6 h-6 flex items-center justify-center bg-black/70 hover:bg-red-600 text-white rounded-full text-base leading-none peer-checked:bg-red-600">&times;</span>
+                                    <span class="absolute inset-0 hidden peer-checked:flex items-center justify-center bg-red-600/50 text-white text-[10px] font-bold">سيتم الحذف</span>
                                 </label>
                             </div>
                         @endforeach
@@ -127,7 +128,7 @@
                     <p class="text-white/30 text-xs">+ إضافة صور {{ $colorName }}</p>
                 </div>
                 <input type="file" name="color_images[{{ $colorName }}][]" multiple accept="image/*,.heic,.heif" class="hidden"
-                       onchange="processImageInput(this, previewInline)">
+                       onchange="processImageInput(this)">
                 <div class="previews grid grid-cols-4 gap-2 mt-2"></div>
             </div>
         @endforeach
@@ -141,10 +142,11 @@
                 <div class="grid grid-cols-4 gap-2">
                     @foreach($untagged as $image)
                         <div class="relative rounded-lg overflow-hidden border border-white/10">
-                            <img src="{{ $image->image_url }}" class="w-full aspect-square object-cover">
-                            <label class="absolute top-1 right-1 flex items-center gap-1 bg-black/60 rounded-full px-1.5 py-0.5 cursor-pointer">
-                                <input type="checkbox" name="delete_images[]" value="{{ $image->id }}">
-                                <span class="text-red-400 text-[9px]">حذف</span>
+                            <img src="{{ $image->image_url }}" class="w-full aspect-square object-cover bg-white/5">
+                            <label class="absolute inset-0 cursor-pointer">
+                                <input type="checkbox" name="delete_images[]" value="{{ $image->id }}" class="peer hidden">
+                                <span class="absolute top-1 right-1 w-6 h-6 flex items-center justify-center bg-black/70 hover:bg-red-600 text-white rounded-full text-base leading-none peer-checked:bg-red-600">&times;</span>
+                                <span class="absolute inset-0 hidden peer-checked:flex items-center justify-center bg-red-600/50 text-white text-[10px] font-bold">سيتم الحذف</span>
                             </label>
                         </div>
                     @endforeach
@@ -152,6 +154,15 @@
             </div>
             @endif
         @endif
+    </div>
+
+    {{-- Add new colors --}}
+    <div class="bg-brand-dark rounded-xl p-6">
+        <h2 class="text-white font-bold mb-1">إضافة لون جديد</h2>
+        <p class="text-white/30 text-xs mb-4">اضغط على لون لإضافته بمقاساته وكميته وصوره</p>
+
+        <div class="flex flex-wrap gap-2 mb-4" id="color-buttons"></div>
+        <div id="new-color-sections" class="space-y-4"></div>
     </div>
 
     {{-- Categories --}}
@@ -192,24 +203,122 @@
 @push('styles')
 <style>
     .gender-label:has(input:checked) { border-color: #e63946; background: rgba(230,57,70,0.1); }
+    .size-label:has(input:checked) { border-color: #e63946; background: rgba(230,57,70,0.1); }
 </style>
 @endpush
 
 @push('scripts')
 <script>
-function previewInline(input) {
-    const container = input.nextElementSibling;
+const allColors = [
+    @foreach([
+        ['name' => 'أسود', 'hex' => '#000000'], ['name' => 'أبيض', 'hex' => '#FFFFFF'],
+        ['name' => 'رمادي', 'hex' => '#6B7280'], ['name' => 'كحلي', 'hex' => '#1E3A5F'],
+        ['name' => 'أحمر', 'hex' => '#DC2626'], ['name' => 'أزرق', 'hex' => '#2563EB'],
+        ['name' => 'أخضر', 'hex' => '#16A34A'], ['name' => 'بني', 'hex' => '#92400E'],
+        ['name' => 'بيج', 'hex' => '#D4B896'], ['name' => 'زيتي', 'hex' => '#556B2F'],
+        ['name' => 'عنابي', 'hex' => '#800020'], ['name' => 'وردي', 'hex' => '#EC4899'],
+        ['name' => 'برتقالي', 'hex' => '#EA580C'], ['name' => 'أصفر', 'hex' => '#EAB308'],
+        ['name' => 'بنفسجي', 'hex' => '#7C3AED'], ['name' => 'تركواز', 'hex' => '#06B6D4'],
+    ] as $c)
+    { name: '{{ $c['name'] }}', hex: '{{ $c['hex'] }}' },
+    @endforeach
+];
+
+// Colors that already exist on this product (cannot be re-added)
+const existingColors = new Set(@json($product->variants->pluck('color')->unique()->values()));
+const addedColors = new Set();
+const letterSizes = ['XS','S','M','L','XL','XXL','3XL'];
+const numberSizes = [6,8,10,12,14,16];
+
+renderColorButtons();
+
+function renderColorButtons() {
+    const container = document.getElementById('color-buttons');
     container.innerHTML = '';
-    Array.from(input.files).forEach(file => {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const div = document.createElement('div');
-            div.className = 'rounded-lg overflow-hidden border border-white/10';
-            div.innerHTML = `<img src="${e.target.result}" class="w-full aspect-square object-cover">`;
-            container.appendChild(div);
-        };
-        reader.readAsDataURL(file);
+    const available = allColors.filter(c => !existingColors.has(c.name) && !addedColors.has(c.name));
+    if (!available.length) {
+        container.innerHTML = '<p class="text-white/30 text-xs">كل الألوان مضافة بالفعل</p>';
+        return;
+    }
+    available.forEach(c => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'flex items-center gap-2 px-3 py-2 rounded-lg border border-white/10 cursor-pointer hover:border-brand-red transition-colors text-sm';
+        btn.innerHTML = `<span class="w-5 h-5 rounded-full border border-white/20" style="background:${c.hex}"></span><span class="text-white/70">${c.name}</span>`;
+        btn.onclick = () => addColor(c.name);
+        container.appendChild(btn);
     });
+}
+
+function addColor(colorName) {
+    if (addedColors.has(colorName) || existingColors.has(colorName)) return;
+    const colorObj = allColors.find(c => c.name === colorName);
+    if (!colorObj) return;
+    addedColors.add(colorName);
+    renderColorButtons();
+    buildColorSection(colorObj.name, colorObj.hex);
+}
+
+function removeColor(colorName) {
+    const section = document.querySelector(`[data-color-section="${colorName}"]`);
+    if (section) section.remove();
+    addedColors.delete(colorName);
+    renderColorButtons();
+}
+
+function buildColorSection(color, hex) {
+    const container = document.getElementById('new-color-sections');
+
+    let sizesHtml = '<p class="text-white/50 text-xs mb-1.5">حروف</p><div class="flex flex-wrap gap-1.5 mb-2">';
+    letterSizes.forEach(s => {
+        sizesHtml += `<label class="size-label flex items-center justify-center w-12 h-8 rounded-lg border border-white/10 cursor-pointer hover:border-brand-red transition-colors text-xs text-white/70">
+            <input type="checkbox" name="variants[${color}][sizes][]" value="${s}" class="hidden peer">
+            <span class="peer-checked:text-brand-red peer-checked:font-bold">${s}</span>
+        </label>`;
+    });
+    sizesHtml += '</div><p class="text-white/50 text-xs mb-1.5">أرقام</p><div class="flex flex-wrap gap-1.5">';
+    numberSizes.forEach(s => {
+        sizesHtml += `<label class="size-label flex items-center justify-center w-10 h-8 rounded-lg border border-white/10 cursor-pointer hover:border-brand-red transition-colors text-xs text-white/70">
+            <input type="checkbox" name="variants[${color}][sizes][]" value="${s}" class="hidden peer">
+            <span class="peer-checked:text-brand-red peer-checked:font-bold">${s}</span>
+        </label>`;
+    });
+    sizesHtml += '</div>';
+
+    const section = document.createElement('div');
+    section.dataset.colorSection = color;
+    section.className = 'border border-white/10 rounded-xl p-4';
+    section.innerHTML = `
+        <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center gap-2">
+                <span class="w-6 h-6 rounded-full border-2 border-white/20" style="background:${hex}"></span>
+                <span class="text-white font-bold">${color}</span>
+            </div>
+            <button type="button" onclick="removeColor('${color}')" class="text-red-400 text-xs hover:underline">حذف اللون</button>
+        </div>
+        <div class="space-y-4">
+            <div>
+                <p class="text-white/70 text-sm font-medium mb-2">الصور</p>
+                <div class="border-2 border-dashed border-white/15 rounded-lg p-4 text-center cursor-pointer hover:border-brand-red transition-colors"
+                     onclick="this.nextElementSibling.click()">
+                    <p class="text-white/30 text-sm">+ ارفع صور ${color}</p>
+                </div>
+                <input type="file" name="color_images[${color}][]" multiple accept="image/*,.heic,.heif" class="hidden"
+                       onchange="processImageInput(this)">
+                <div class="previews grid grid-cols-4 gap-2 mt-2"></div>
+            </div>
+            <div>
+                <p class="text-white/70 text-sm font-medium mb-2">المقاسات المتاحة لـ ${color}</p>
+                ${sizesHtml}
+            </div>
+            <div class="flex items-center gap-2">
+                <label class="text-white/70 text-sm">الكمية لكل مقاس</label>
+                <input type="number" name="variants[${color}][quantity]" value="10" min="0"
+                    class="w-24 bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-white text-sm focus:outline-none focus:border-brand-red" dir="ltr">
+            </div>
+        </div>
+    `;
+    container.appendChild(section);
 }
 </script>
 @endpush

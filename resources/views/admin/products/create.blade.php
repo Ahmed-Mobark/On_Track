@@ -208,7 +208,7 @@ function buildColorSection(color, hex) {
                     <p class="text-white/30 text-sm">+ ارفع صور ${color}</p>
                 </div>
                 <input type="file" name="color_images[${color}][]" multiple accept="image/*,.heic,.heif" class="hidden"
-                       onchange="processImageInput(this, previewColorImages)">
+                       onchange="processImageInput(this)">
                 <div class="previews grid grid-cols-4 gap-2 mt-2"></div>
             </div>
 
@@ -227,22 +227,5 @@ function buildColorSection(color, hex) {
     container.appendChild(section);
 }
 
-function previewColorImages(input) {
-    const container = input.nextElementSibling;
-    container.innerHTML = '';
-    Array.from(input.files).forEach((file, i) => {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const div = document.createElement('div');
-            div.className = 'relative rounded-lg overflow-hidden border border-white/10';
-            div.innerHTML = `
-                <img src="${e.target.result}" class="w-full aspect-square object-cover">
-                ${i === 0 ? '<span class="absolute top-1 right-1 bg-brand-red text-white text-[8px] px-1.5 py-0.5 rounded-full">رئيسية</span>' : ''}
-            `;
-            container.appendChild(div);
-        };
-        reader.readAsDataURL(file);
-    });
-}
 </script>
 @endpush

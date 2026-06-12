@@ -310,9 +310,29 @@
             function loadImage(src) {
                 return new Promise(function (resolve, reject) {
                     var img = new Image();
-                    img.onload = function () { resolve(img); };
-                    img.onerror = reject;
+                    img.onload = function () {
+                        if (!(img.naturalWidth || img.width)) { reject(new Error('zero-size image')); return; }
+                        resolve(img);
+                    };
+                    img.onerror = function () { reject(new Error('image decode failed')); };
                     img.src = src;
+                });
+            }
+
+            // Draw an already-decoded <img> to a canvas and return a compressed JPEG File
+            function imageToJpegFile(img, name, maxDim, quality) {
+                var w = img.naturalWidth || img.width;
+                var h = img.naturalHeight || img.height;
+                var scale = Math.min(1, maxDim / Math.max(w, h));
+                var canvas = document.createElement('canvas');
+                canvas.width = Math.round(w * scale);
+                canvas.height = Math.round(h * scale);
+                canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+                return new Promise(function (resolve, reject) {
+                    canvas.toBlob(function (blob) {
+                        if (!blob) { reject(new Error('toBlob failed')); return; }
+                        resolve(new File([blob], name + '.jpg', { type: 'image/jpeg' }));
+                    }, 'image/jpeg', quality);
                 });
             }
 
@@ -324,88 +344,127 @@
                 var name = (file.name || 'image').replace(/\.[^.]+$/, '');
                 var isHeic = /heic|heif/i.test(file.type) || /\.(heic|heif)$/i.test(file.name || '');
 
-                var prep = Promise.resolve(file);
-                if (isHeic) {
-                    prep = ensureHeicLib().then(function () {
+                // 1) Try native browser decode first.
+                //    Works for all normal images everywhere, and for HEIC in Safari (no extra lib needed).
+                var nativeTry = readAsDataURL(file).then(loadImage).then(function (img) {
+                    var w = img.naturalWidth || img.width;
+                    var h = img.naturalHeight || img.height;
+                    var scale = Math.min(1, maxDim / Math.max(w, h));
+
+                    // Small non-HEIC and no resize needed → keep original untouched
+                    if (scale === 1 && !isHeic && file.size <= 1.5 * 1024 * 1024) {
+                        return file;
+                    }
+                    return imageToJpegFile(img, name, maxDim, quality).then(function (out) {
+                        if (!isHeic && out.size >= file.size) return file;
+                        return out;
+                    });
+                });
+
+                return nativeTry.catch(function (nativeErr) {
+                    // 2) Native decode failed. For HEIC (e.g. Chrome) fall back to heic2any.
+                    if (!isHeic) {
+                        console.warn('Image compress failed, uploading original:', file.name, nativeErr);
+                        return file; // normal image: safe to upload as-is
+                    }
+                    return ensureHeicLib().then(function () {
                         return heic2any({ blob: file, toType: 'image/jpeg', quality: quality });
                     }).then(function (blob) {
-                        // heic2any can return an array of blobs for multi-image HEIC
                         if (Array.isArray(blob)) blob = blob[0];
-                        return new File([blob], name + '.jpg', { type: 'image/jpeg' });
+                        var jpg = new File([blob], name + '.jpg', { type: 'image/jpeg' });
+                        // Resize/compress the converted JPEG; if that fails just use the converted file
+                        return readAsDataURL(jpg).then(loadImage).then(function (img) {
+                            return imageToJpegFile(img, name, maxDim, quality);
+                        }).catch(function () { return jpg; });
                     }).catch(function (err) {
-                        // Mark HEIC conversion failure so the caller can skip it (never upload raw HEIC)
+                        console.error('HEIC conversion failed for', file.name, err);
                         var e = new Error('HEIC_CONVERT_FAILED');
                         e.original = err;
                         throw e;
                     });
-                }
-
-                return prep.then(function (working) {
-                    return readAsDataURL(working).then(loadImage).then(function (img) {
-                        var w = img.naturalWidth || img.width;
-                        var h = img.naturalHeight || img.height;
-                        var scale = Math.min(1, maxDim / Math.max(w, h));
-
-                        // Small enough already and not HEIC → keep original untouched
-                        if (scale === 1 && !isHeic && file.size <= 1.5 * 1024 * 1024) {
-                            return working;
-                        }
-
-                        var canvas = document.createElement('canvas');
-                        canvas.width = Math.round(w * scale);
-                        canvas.height = Math.round(h * scale);
-                        var ctx = canvas.getContext('2d');
-                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-
-                        return new Promise(function (resolve) {
-                            canvas.toBlob(function (blob) {
-                                if (!blob) { resolve(working); return; }
-                                // For non-HEIC, only use compressed version if it's actually smaller
-                                if (!isHeic && blob.size >= working.size) { resolve(working); return; }
-                                resolve(new File([blob], name + '.jpg', { type: 'image/jpeg' }));
-                            }, 'image/jpeg', quality);
-                        });
-                    }).catch(function () {
-                        return working; // fall back to whatever we have
-                    });
                 });
             }
 
-            // Processes the files of a file input in place, then calls onDone(input)
+            // Finds the .previews container next to a file input
+            function previewsContainerFor(input) {
+                var c = input.parentElement ? input.parentElement.querySelector('.previews') : null;
+                return c || input.nextElementSibling;
+            }
+
+            // Pushes the accumulated files (input._files) back into the real input.files
+            function syncInputFiles(input) {
+                var dt = new DataTransfer();
+                (input._files || []).forEach(function (f) { dt.items.add(f); });
+                try { input.files = dt.files; } catch (e) {}
+            }
+
+            // Removes one accumulated file and re-renders
+            window.removeUploadedFile = function (input, index) {
+                if (!input._files) return;
+                input._files.splice(index, 1);
+                syncInputFiles(input);
+                window.renderFilePreviews(input);
+            };
+
+            // Renders previews (with a remove button + main badge) from the accumulated files
+            window.renderFilePreviews = function (input) {
+                var container = previewsContainerFor(input);
+                if (!container) return;
+                container.innerHTML = '';
+                (input._files || []).forEach(function (file, i) {
+                    var url = URL.createObjectURL(file);
+                    var div = document.createElement('div');
+                    div.className = 'relative rounded-lg overflow-hidden border border-white/10';
+                    var badge = (i === 0)
+                        ? '<span class="absolute top-1 left-1 bg-brand-red text-white text-[8px] px-1.5 py-0.5 rounded-full">رئيسية</span>'
+                        : '';
+                    div.innerHTML =
+                        '<img src="' + url + '" class="w-full aspect-square object-cover">' + badge +
+                        '<button type="button" title="حذف" class="remove-img absolute top-1 right-1 w-5 h-5 flex items-center justify-center bg-black/70 hover:bg-red-600 text-white rounded-full text-sm leading-none">&times;</button>';
+                    div.querySelector('.remove-img').addEventListener('click', function () {
+                        window.removeUploadedFile(input, i);
+                    });
+                    container.appendChild(div);
+                });
+            };
+
+            // Processes newly selected files (convert HEIC + compress), accumulates them on the input,
+            // renders previews with remove buttons, then calls optional onDone(input).
             window.processImageInput = function (input, onDone) {
-                var files = Array.prototype.slice.call(input.files || []);
-                if (!files.length) { if (onDone) onDone(input); return; }
+                var newFiles = Array.prototype.slice.call(input.files || []);
+                if (!newFiles.length) { if (onDone) onDone(input); return; }
 
                 var area = input.previousElementSibling;
                 var areaText = area && area.querySelector ? area.querySelector('p') : null;
                 var originalText = areaText ? areaText.textContent : null;
                 if (areaText) areaText.textContent = 'جاري معالجة الصور...';
 
-                var dt = new DataTransfer();
+                if (!input._files) input._files = [];
                 var skipped = 0;
                 var chain = Promise.resolve();
-                files.forEach(function (f) {
+                newFiles.forEach(function (f) {
                     chain = chain.then(function () {
                         return compressImageFile(f).then(function (out) {
-                            dt.items.add(out);
-                        }).catch(function (err) {
+                            input._files.push(out);
+                        }).catch(function () {
                             var isHeic = /heic|heif/i.test(f.type) || /\.(heic|heif)$/i.test(f.name || '');
-                            // For HEIC we must NOT upload the raw file (browsers can't display it). Skip it.
+                            // For HEIC we must NOT keep the raw file (browsers can't display it). Skip it.
                             if (isHeic) { skipped++; return; }
-                            // For normal images, a failed compression is safe to upload as-is.
-                            dt.items.add(f);
+                            // For normal images, a failed compression is safe to keep as-is.
+                            input._files.push(f);
                         });
                     });
                 });
 
                 chain.then(function () {
-                    try { input.files = dt.files; } catch (e) {}
+                    syncInputFiles(input);
                     if (areaText && originalText !== null) areaText.textContent = originalText;
                     if (skipped && typeof showToast === 'function') {
                         showToast('تعذّر تحويل ' + skipped + ' صورة HEIC، جرّب مرة أخرى');
                     } else if (skipped) {
                         alert('تعذّر تحويل ' + skipped + ' صورة HEIC، جرّب مرة أخرى');
                     }
+                    window.renderFilePreviews(input);
                     if (onDone) onDone(input);
                 });
             };

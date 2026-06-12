@@ -128,6 +128,31 @@ class ProductController extends Controller
             }
         }
 
+        // Create variants for newly added colors (edit page)
+        if ($request->variants) {
+            $existing = $product->variants()->get(['color', 'size'])
+                ->map(fn ($v) => $v->color . '|' . $v->size)
+                ->flip();
+
+            foreach ($request->variants as $color => $colorData) {
+                $hex = self::COLORS[$color] ?? '#000000';
+                $sizes = $colorData['sizes'] ?? [];
+                $qty = (int) ($colorData['quantity'] ?? 10);
+
+                foreach ($sizes as $size) {
+                    if ($existing->has($color . '|' . $size)) continue;
+
+                    $product->variants()->create([
+                        'size' => $size,
+                        'color' => $color,
+                        'color_hex' => $hex,
+                        'quantity' => $qty,
+                        'sku' => $product->sku . '-' . strtoupper(substr(md5($color), 0, 3)) . '-' . $size,
+                    ]);
+                }
+            }
+        }
+
         // Delete selected images
         if ($request->delete_images) {
             $images = ProductImage::whereIn('id', $request->delete_images)
