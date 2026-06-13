@@ -24,6 +24,16 @@ use App\Http\Controllers\Shop\ContactController;
 use App\Http\Controllers\Shop\NotificationController;
 use App\Http\Controllers\Admin\NotificationController as AdminNotificationController;
 
+// ==================== MEDIA (serve storage files via Storage, no symlink needed) ====================
+Route::get('/media/{path}', function (string $path) {
+    $disk = \Illuminate\Support\Facades\Storage::disk('public');
+    abort_unless($disk->exists($path), 404);
+
+    return $disk->response($path, null, [
+        'Cache-Control' => 'public, max-age=31536000',
+    ]);
+})->where('path', '.*')->name('media');
+
 // ==================== WEBHOOKS (no CSRF) ====================
 Route::post('/webhooks/bosta', [\App\Http\Controllers\Webhook\BostaWebhookController::class, 'handle'])
     ->withoutMiddleware([\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class])

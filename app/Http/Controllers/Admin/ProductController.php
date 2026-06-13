@@ -196,7 +196,7 @@ class ProductController extends Controller
 
             foreach ($files as $file) {
                 $sortOrder++;
-                $path = $file->store('products/' . $product->id, 'public');
+                $path = $this->storeOptimizedImage($file, 'products/' . $product->id);
 
                 $product->images()->create([
                     'url' => $path,
@@ -217,7 +217,7 @@ class ProductController extends Controller
 
         foreach ($request->file('images') as $file) {
             $sortOrder++;
-            $path = $file->store('products/' . $product->id, 'public');
+            $path = $this->storeOptimizedImage($file, 'products/' . $product->id);
 
             $product->images()->create([
                 'url' => $path,
@@ -225,5 +225,141 @@ class ProductController extends Controller
                 'sort_order' => $sortOrder,
             ]);
         }
+    }
+
+    /**
+     * Store an uploaded image, resizing/compressing large ones with GD.
+     * Falls back to storing the original file if GD can't decode it (e.g. HEIC).
+     */
+    private function storeOptimizedImage($file, string $dir, int $maxDim = 2000, int $quality = 85): string
+    {
+        $disk = Storage::disk('public');
+        $mime = $file->getMimeType();
+        $ext = strtolower($file->getClientOriginalExtension());
+        $srcPath = $file->getRealPath();
+
+        // HEIC/HEIF can't be read by GD → convert to JPEG first (Imagick / sips / heif-convert)
+        $heicTmp = null;
+        $isHeic = str_contains((string) $mime, 'heic') || str_contains((string) $mime, 'heif')
+            || in_array($ext, ['heic', 'heif']);
+        if ($isHeic) {
+            $heicTmp = $this->convertHeicToJpeg($srcPath);
+            if ($heicTmp) {
+                $srcPath = $heicTmp;
+                $mime = 'image/jpeg';
+            }
+        }
+
+        $loaders = [
+            'image/jpeg' => 'imagecreatefromjpeg',
+            'image/png'  => 'imagecreatefrompng',
+            'image/webp' => 'imagecreatefromwebp',
+            'image/gif'  => 'imagecreatefromgif',
+        ];
+
+        // Not a GD-decodable raster image (e.g. HEIC we couldn't convert) → store original as-is
+        if (!extension_loaded('gd') || !isset($loaders[$mime]) || !function_exists($loaders[$mime])) {
+            if ($heicTmp) @unlink($heicTmp);
+            return $file->store($dir, 'public');
+        }
+
+        try {
+            $src = @$loaders[$mime]($srcPath);
+            if (!$src) {
+                if ($heicTmp) @unlink($heicTmp);
+                return $file->store($dir, 'public');
+            }
+
+            $w = imagesx($src);
+            $h = imagesy($src);
+            $scale = min(1, $maxDim / max($w, $h));
+
+            // Already small and within size budget → store original untouched
+            // (skip this shortcut for HEIC we converted, so we keep the JPEG, not the raw HEIC)
+            if ($scale >= 1 && !$heicTmp && $file->getSize() <= 1.5 * 1024 * 1024) {
+                return $file->store($dir, 'public');
+            }
+
+            $nw = max(1, (int) round($w * $scale));
+            $nh = max(1, (int) round($h * $scale));
+
+            $isPng = $mime === 'image/png';
+            $dst = imagecreatetruecolor($nw, $nh);
+
+            if ($isPng) {
+                imagealphablending($dst, false);
+                imagesavealpha($dst, true);
+            } else {
+                // Flatten any transparency onto white for JPEG output
+                $white = imagecolorallocate($dst, 255, 255, 255);
+                imagefilledrectangle($dst, 0, 0, $nw, $nh, $white);
+            }
+
+            imagecopyresampled($dst, $src, 0, 0, 0, 0, $nw, $nh, $w, $h);
+
+            $relPath = $dir . '/' . Str::uuid()->toString() . ($isPng ? '.png' : '.jpg');
+            $tmp = tempnam(sys_get_temp_dir(), 'img');
+
+            if ($isPng) {
+                imagepng($dst, $tmp, 6);
+            } else {
+                imagejpeg($dst, $tmp, $quality);
+            }
+
+            $disk->put($relPath, file_get_contents($tmp));
+            @unlink($tmp);
+            if ($heicTmp) @unlink($heicTmp);
+
+            return $relPath;
+        } catch (\Throwable $e) {
+            if ($heicTmp) @unlink($heicTmp);
+            return $file->store($dir, 'public');
+        }
+    }
+
+    /**
+     * Convert a HEIC/HEIF file to a temporary JPEG using whatever tool is available.
+     * Returns the temp JPEG path, or null if no converter succeeded.
+     */
+    private function convertHeicToJpeg(string $src): ?string
+    {
+        $base = tempnam(sys_get_temp_dir(), 'heic');
+        $out = $base . '.jpg';
+        @unlink($base);
+
+        // 1) Imagick with HEIC support
+        if (extension_loaded('imagick')) {
+            try {
+                if (!empty(\Imagick::queryFormats('HEIC')) || !empty(\Imagick::queryFormats('HEIF'))) {
+                    $im = new \Imagick($src);
+                    $im->setImageFormat('jpeg');
+                    $im->setImageCompressionQuality(90);
+                    $im->writeImage($out);
+                    $im->clear();
+                    if (is_file($out) && filesize($out) > 0) return $out;
+                }
+            } catch (\Throwable $e) {
+                // fall through to CLI tools
+            }
+        }
+
+        // 2) CLI converters (sips on macOS, heif-convert/magick/convert on Linux)
+        $templates = [
+            'sips -s format jpeg %s --out %s',
+            'heif-convert -q 90 %s %s',
+            'magick %s -quality 90 %s',
+            'convert %s -quality 90 %s',
+        ];
+        foreach ($templates as $tpl) {
+            $bin = strtok($tpl, ' ');
+            $which = @shell_exec('command -v ' . escapeshellarg($bin) . ' 2>/dev/null');
+            if (empty(trim((string) $which))) continue;
+
+            @shell_exec(sprintf($tpl, escapeshellarg($src), escapeshellarg($out)) . ' 2>&1');
+            if (is_file($out) && filesize($out) > 0) return $out;
+        }
+
+        @unlink($out);
+        return null;
     }
 }

@@ -19,7 +19,8 @@ class ProductImage extends Model
     {
         $url = $this->url;
         if (str_starts_with($url, 'http')) return $url;
-        return asset('storage/' . $url);
+        // Serve through the /media route (uses Storage) so images work even without a storage symlink
+        return url('media/' . ltrim($url, '/'));
     }
 
     public function product() { return $this->belongsTo(Product::class); }

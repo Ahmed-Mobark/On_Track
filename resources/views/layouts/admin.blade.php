@@ -362,11 +362,10 @@
                 });
 
                 return nativeTry.catch(function (nativeErr) {
-                    // 2) Native decode failed. For HEIC (e.g. Chrome) fall back to heic2any.
-                    if (!isHeic) {
-                        console.warn('Image compress failed, uploading original:', file.name, nativeErr);
-                        return file; // normal image: safe to upload as-is
-                    }
+                    // 2) Native decode failed. The file is very likely HEIC content
+                    //    (even if its extension is .jpg, e.g. an iPhone photo renamed).
+                    //    Try to convert it with heic2any regardless of extension.
+                    console.warn('Native decode failed, trying HEIC conversion for:', file.name, nativeErr);
                     return ensureHeicLib().then(function () {
                         return heic2any({ blob: file, toType: 'image/jpeg', quality: quality });
                     }).then(function (blob) {
@@ -377,10 +376,10 @@
                             return imageToJpegFile(img, name, maxDim, quality);
                         }).catch(function () { return jpg; });
                     }).catch(function (err) {
-                        console.error('HEIC conversion failed for', file.name, err);
-                        var e = new Error('HEIC_CONVERT_FAILED');
-                        e.original = err;
-                        throw e;
+                        // Couldn't process in the browser. Upload the ORIGINAL file and let the
+                        // server convert (HEIC → JPEG) and resize it. The server has sips/Imagick/heif-convert.
+                        console.warn('Uploading original, server will convert/optimize:', file.name, err);
+                        return file;
                     });
                 });
             }
@@ -414,13 +413,24 @@
                 (input._files || []).forEach(function (file, i) {
                     var url = URL.createObjectURL(file);
                     var div = document.createElement('div');
-                    div.className = 'relative rounded-lg overflow-hidden border border-white/10';
+                    div.className = 'relative rounded-lg overflow-hidden border border-white/10 bg-white/5';
                     var badge = (i === 0)
-                        ? '<span class="absolute top-1 left-1 bg-brand-red text-white text-[8px] px-1.5 py-0.5 rounded-full">رئيسية</span>'
+                        ? '<span class="absolute top-1 left-1 z-10 bg-brand-red text-white text-[8px] px-1.5 py-0.5 rounded-full">رئيسية</span>'
                         : '';
-                    div.innerHTML =
-                        '<img src="' + url + '" class="w-full aspect-square object-cover">' + badge +
-                        '<button type="button" title="حذف" class="remove-img absolute top-1 right-1 w-5 h-5 flex items-center justify-center bg-black/70 hover:bg-red-600 text-white rounded-full text-sm leading-none">&times;</button>';
+                    // Fallback shown if the browser can't display the file (e.g. raw HEIC) — it will still
+                    // be converted by the server on save.
+                    var placeholder = '<div class="hidden ph w-full aspect-square flex-col items-center justify-center text-center p-2">' +
+                        '<svg class="w-6 h-6 text-white/40 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14M4 6h16v12H4V6z"/></svg>' +
+                        '<span class="text-white/50 text-[9px] leading-tight">هتتحول عند الحفظ</span></div>';
+                    div.innerHTML = badge +
+                        '<img src="' + url + '" class="w-full aspect-square object-cover">' + placeholder +
+                        '<button type="button" title="حذف" class="remove-img absolute top-1 right-1 z-10 w-5 h-5 flex items-center justify-center bg-black/70 hover:bg-red-600 text-white rounded-full text-sm leading-none">&times;</button>';
+                    var img = div.querySelector('img');
+                    img.addEventListener('error', function () {
+                        img.classList.add('hidden');
+                        var ph = div.querySelector('.ph');
+                        if (ph) { ph.classList.remove('hidden'); ph.classList.add('flex'); }
+                    });
                     div.querySelector('.remove-img').addEventListener('click', function () {
                         window.removeUploadedFile(input, i);
                     });
@@ -441,17 +451,21 @@
 
                 if (!input._files) input._files = [];
                 var skipped = 0;
+                var skippedNames = [];
                 var chain = Promise.resolve();
                 newFiles.forEach(function (f) {
                     chain = chain.then(function () {
+                        var kb = Math.round((f.size || 0) / 1024);
+                        console.log('[img] processing:', f.name, '| type:', f.type || '(none)', '| size:', kb + 'KB');
                         return compressImageFile(f).then(function (out) {
+                            var okb = Math.round((out.size || 0) / 1024);
+                            console.log('[img] OK:', f.name, '→', out.name, '(' + okb + 'KB,', out.type + ')');
                             input._files.push(out);
-                        }).catch(function () {
-                            var isHeic = /heic|heif/i.test(f.type) || /\.(heic|heif)$/i.test(f.name || '');
-                            // For HEIC we must NOT keep the raw file (browsers can't display it). Skip it.
-                            if (isHeic) { skipped++; return; }
-                            // For normal images, a failed compression is safe to keep as-is.
-                            input._files.push(f);
+                        }).catch(function (err) {
+                            // Image couldn't be decoded/converted → never upload a broken file.
+                            console.error('[img] SKIPPED:', f.name, '| reason:', (err && err.message) || err);
+                            skipped++;
+                            skippedNames.push(f.name);
                         });
                     });
                 });
@@ -459,10 +473,10 @@
                 chain.then(function () {
                     syncInputFiles(input);
                     if (areaText && originalText !== null) areaText.textContent = originalText;
-                    if (skipped && typeof showToast === 'function') {
-                        showToast('تعذّر تحويل ' + skipped + ' صورة HEIC، جرّب مرة أخرى');
-                    } else if (skipped) {
-                        alert('تعذّر تحويل ' + skipped + ' صورة HEIC، جرّب مرة أخرى');
+                    if (skipped) {
+                        console.warn('[img] skipped files:', skippedNames);
+                        var msg = 'تعذّر معالجة ' + skipped + ' صورة (' + skippedNames.join('، ') + ') وتم تجاهلها';
+                        if (typeof showToast === 'function') showToast(msg); else alert(msg);
                     }
                     window.renderFilePreviews(input);
                     if (onDone) onDone(input);
