@@ -77,11 +77,16 @@ class OrderController extends Controller
     public function store(Request $request)
     {
         $rules = [
-            'payment_method' => 'required|in:COD,VISA,INSTAPAY,WALLET',
-            'payment_type' => 'required|in:SHIPPING_ONLY,FULL',
-            'payment_proof' => 'required_without:use_wallet|image|mimes:jpg,jpeg,png,webp|max:5120',
+            'payment_type' => 'required|in:COD,FULL',
             'use_wallet' => 'nullable|numeric|min:0',
         ];
+
+        // Payment proof (InstaPay screenshot) is only needed for full online payment
+        if ($request->payment_type === 'FULL') {
+            $rules['payment_proof'] = 'required_without:use_wallet|image|mimes:jpg,jpeg,png,webp|max:5120';
+        } else {
+            $rules['payment_proof'] = 'nullable|image|mimes:jpg,jpeg,png,webp|max:5120';
+        }
 
         // Guest checkout: require address info inline
         if (!auth()->check()) {
@@ -220,25 +225,15 @@ class OrderController extends Controller
             $paymentProofPath = $request->file('payment_proof')->store('payment-proofs', 'public');
         }
 
-        // Calculate deposit amount for partial payments
-        $depositAmount = null;
-        if ($request->payment_type === 'SHIPPING_ONLY') {
-            if ($shippingCost > 0) {
-                $depositAmount = $shippingCost;
-            } else {
-                $depositMin = (float) \App\Models\SiteSetting::get('deposit_min', 100);
-                $depositPercentage = (float) \App\Models\SiteSetting::get('deposit_percentage', 10);
-                $depositAmount = max($depositMin, ceil(($subtotal - $discount) * ($depositPercentage / 100)));
-            }
-        } elseif ($request->payment_type === 'FULL') {
-            $depositAmount = $total;
-        }
+        // Full online payment pays the whole total upfront; COD pays on delivery
+        $depositAmount = $request->payment_type === 'FULL' ? $total : null;
+        $paymentMethod = $request->payment_type === 'FULL' ? 'INSTAPAY' : 'COD';
 
         $order = Order::create([
             'order_number' => Order::generateOrderNumber(),
             'user_id' => $userId,
             'address_id' => $addressId,
-            'payment_method' => 'INSTAPAY',
+            'payment_method' => $paymentMethod,
             'payment_type' => $request->payment_type,
             'payment_status' => 'PENDING',
             'payment_proof' => $paymentProofPath,

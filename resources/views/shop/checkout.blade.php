@@ -162,10 +162,9 @@
                     <input type="hidden" name="deposit_amount" id="deposit-amount-input" value="{{ $shippingCost > 0 ? $shippingCost : $depositAmount }}">
 
                     <div class="space-y-3" id="payment-options">
-                        {{-- Option 1: Pay Partial (Shipping or Deposit) --}}
-                        <label class="payment-option relative block p-4 rounded-xl border-2 border-brand-red bg-brand-red/5 cursor-pointer transition-all" id="option-shipping">
-                            <input type="radio" name="payment_type" value="SHIPPING_ONLY" class="hidden" checked>
-                            {{-- Badge --}}
+                        {{-- Option 1: Cash on Delivery (default) --}}
+                        <label class="payment-option relative block p-4 rounded-xl border-2 border-brand-red bg-brand-red/5 cursor-pointer transition-all" id="option-cod">
+                            <input type="radio" name="payment_type" value="COD" class="hidden" checked>
                             <span class="absolute -top-2.5 right-4 bg-brand-red text-white text-[10px] font-bold px-3 py-0.5 rounded-full shadow-lg">
                                 الأكثر شيوعاً
                             </span>
@@ -174,40 +173,30 @@
                                     <div class="w-2.5 h-2.5 rounded-full bg-brand-red option-dot"></div>
                                 </div>
                                 <div class="flex-1">
-                                    <h3 class="text-white font-bold text-sm mb-1" id="partial-title">{{ $shippingCost > 0 ? 'ادفع الشحن فقط' : 'ادفع عربون تأكيد' }}</h3>
-                                    <p class="text-white/50 text-xs leading-relaxed mb-3" id="partial-desc">{{ $shippingCost > 0 ? 'ادفع رسوم الشحن الآن لتأكيد طلبك. المبلغ المتبقي يُدفع عند الاستلام.' : 'ادفع عربون بسيط لتأكيد جدية طلبك. المبلغ المتبقي يُدفع عند الاستلام.' }}</p>
-                                    <div class="bg-white/5 rounded-lg p-3 space-y-1.5">
-                                        <div class="flex justify-between text-sm">
-                                            <span class="text-white/60" id="partial-fee-label">{{ $shippingCost > 0 ? 'رسوم الشحن' : 'عربون التأكيد' }}</span>
-                                            <span class="text-brand-red font-bold" id="shipping-pay-amount">{{ $shippingCost > 0 ? number_format($shippingCost) . ' ج.م' : number_format($depositAmount) . ' ج.م' }}</span>
-                                        </div>
-                                        <div class="flex justify-between text-sm">
-                                            <span class="text-white/60">المبلغ المتبقي (عند الاستلام)</span>
-                                            <span class="text-white font-medium" id="remaining-amount">{{ $shippingCost > 0 ? number_format($subtotal - ($discount ?? 0)) . ' ج.م' : number_format($subtotal - $depositAmount) . ' ج.م' }}</span>
-                                        </div>
+                                    <h3 class="text-white font-bold text-sm mb-1">الدفع عند الاستلام</h3>
+                                    <p class="text-white/50 text-xs leading-relaxed">ادفع قيمة الطلب نقدًا عند استلام الشحنة.</p>
+                                    {{-- Note shown when COD is selected --}}
+                                    <div id="cod-note" class="mt-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-3 flex items-start gap-2">
+                                        <svg class="w-4 h-4 text-yellow-400 mt-0.5 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/></svg>
+                                        <p class="text-yellow-200/80 text-xs leading-relaxed">سيتم التواصل معك لتأكيد الطلب وقد يُطلب سداد رسوم الشحن مقدمًا لتأكيد الحجز.</p>
                                     </div>
-                                    <p id="free-shipping-msg" class="text-green-400/70 text-[10px] mt-2 flex items-center gap-1 {{ $isFreeShipping ? '' : 'hidden' }}">
-                                        <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
-                                        الشحن مجاني! العربون يُخصم من إجمالي الطلب
-                                    </p>
                                 </div>
                             </div>
                         </label>
 
-                        {{-- Option 2: Pay Full Amount --}}
+                        {{-- Option 2: Full payment via InstaPay (optional) --}}
                         <label class="payment-option relative block p-4 rounded-xl border-2 border-white/10 cursor-pointer transition-all hover:border-white/30" id="option-full">
                             <input type="radio" name="payment_type" value="FULL" class="hidden">
-                            {{-- Badge --}}
                             <span class="absolute -top-2.5 right-4 bg-green-500 text-white text-[10px] font-bold px-3 py-0.5 rounded-full shadow-lg">
-                                أفضل قيمة
+                                اختياري
                             </span>
                             <div class="flex items-start gap-3">
                                 <div class="w-5 h-5 rounded-full border-2 border-white/30 flex items-center justify-center mt-0.5 shrink-0">
                                     <div class="w-2.5 h-2.5 rounded-full bg-transparent option-dot"></div>
                                 </div>
                                 <div class="flex-1">
-                                    <h3 class="text-white font-bold text-sm mb-1">ادفع المبلغ كاملاً</h3>
-                                    <p class="text-white/50 text-xs leading-relaxed mb-3">ادفع قيمة الطلب كاملة الآن واستمتع بتأكيد أسرع لطلبك.</p>
+                                    <h3 class="text-white font-bold text-sm mb-1">دفع كامل عبر InstaPay</h3>
+                                    <p class="text-white/50 text-xs leading-relaxed mb-3">ادفع قيمة الطلب كاملة الآن عبر InstaPay لتأكيد أسرع لطلبك.</p>
                                     <div class="bg-white/5 rounded-lg p-3">
                                         <div class="flex justify-between text-sm">
                                             <span class="text-white/60">إجمالي المبلغ</span>
@@ -448,39 +437,40 @@ paymentOptions.forEach(option => {
 
 function updatePaymentSelection() {
     const selected = document.querySelector('input[name="payment_type"]:checked').value;
-    const optionShipping = document.getElementById('option-shipping');
+    const optionCod = document.getElementById('option-cod');
     const optionFull = document.getElementById('option-full');
+    const codNote = document.getElementById('cod-note');
+    const instapaySection = document.getElementById('instapay-section');
+    const proofInput = document.getElementById('payment-proof-input');
 
-    // Reset styles
-    optionShipping.classList.remove('border-brand-red', 'bg-brand-red/5');
-    optionShipping.classList.add('border-white/10');
-    optionShipping.querySelector('.option-dot').classList.remove('bg-brand-red');
-    optionShipping.querySelector('.option-dot').classList.add('bg-transparent');
-    optionShipping.querySelector('.option-dot').parentElement.classList.remove('border-brand-red');
-    optionShipping.querySelector('.option-dot').parentElement.classList.add('border-white/30');
-
-    optionFull.classList.remove('border-brand-red', 'bg-brand-red/5', 'border-green-500', 'bg-green-500/5');
-    optionFull.classList.add('border-white/10');
-    optionFull.querySelector('.option-dot').classList.remove('bg-brand-red', 'bg-green-500');
-    optionFull.querySelector('.option-dot').classList.add('bg-transparent');
-    optionFull.querySelector('.option-dot').parentElement.classList.remove('border-brand-red', 'border-green-500');
-    optionFull.querySelector('.option-dot').parentElement.classList.add('border-white/30');
-
-    if (selected === 'SHIPPING_ONLY') {
-        optionShipping.classList.remove('border-white/10');
-        optionShipping.classList.add('border-brand-red', 'bg-brand-red/5');
-        optionShipping.querySelector('.option-dot').classList.remove('bg-transparent');
-        optionShipping.querySelector('.option-dot').classList.add('bg-brand-red');
-        optionShipping.querySelector('.option-dot').parentElement.classList.remove('border-white/30');
-        optionShipping.querySelector('.option-dot').parentElement.classList.add('border-brand-red');
-    } else {
-        optionFull.classList.remove('border-white/10');
-        optionFull.classList.add('border-green-500', 'bg-green-500/5');
-        optionFull.querySelector('.option-dot').classList.remove('bg-transparent');
-        optionFull.querySelector('.option-dot').classList.add('bg-green-500');
-        optionFull.querySelector('.option-dot').parentElement.classList.remove('border-white/30');
-        optionFull.querySelector('.option-dot').parentElement.classList.add('border-green-500');
+    // Helper to toggle the visual selected state of an option
+    function setActive(el, active, color) {
+        const dot = el.querySelector('.option-dot');
+        const ring = dot.parentElement;
+        el.classList.remove('border-brand-red', 'bg-brand-red/5', 'border-green-500', 'bg-green-500/5', 'border-white/10');
+        dot.classList.remove('bg-brand-red', 'bg-green-500', 'bg-transparent');
+        ring.classList.remove('border-brand-red', 'border-green-500', 'border-white/30');
+        if (active) {
+            el.classList.add('border-' + color, 'bg-' + color + '/5');
+            dot.classList.add('bg-' + color);
+            ring.classList.add('border-' + color);
+        } else {
+            el.classList.add('border-white/10');
+            dot.classList.add('bg-transparent');
+            ring.classList.add('border-white/30');
+        }
     }
+
+    const isCod = selected === 'COD';
+    setActive(optionCod, isCod, 'brand-red');
+    setActive(optionFull, !isCod, 'green-500');
+
+    // COD note only when COD selected
+    if (codNote) codNote.style.display = isCod ? 'flex' : 'none';
+
+    // InstaPay area + payment proof only for FULL payment
+    if (instapaySection) instapaySection.style.display = isCod ? 'none' : 'block';
+    if (proofInput) proofInput.required = !isCod;
 
     updateAmountToPay();
 }
@@ -488,22 +478,16 @@ function updatePaymentSelection() {
 function updateAmountToPay() {
     const selected = document.querySelector('input[name="payment_type"]:checked').value;
     const amountEl = document.getElementById('amount-to-pay');
-    const shipText = document.getElementById('shipping-cost-display').textContent;
-    const shipCost = parseInt(shipText.replace(/[^0-9]/g, '')) || 0;
+    const depositInput = document.getElementById('deposit-amount-input');
     const totalText = document.getElementById('total-display').textContent;
     const totalCost = parseInt(totalText.replace(/[^0-9]/g, '')) || 0;
 
-    if (selected === 'SHIPPING_ONLY') {
-        if (shipCost > 0) {
-            amountEl.textContent = shipCost.toLocaleString() + ' ج.م';
-        } else {
-            // Free shipping - show deposit amount
-            const deposit = calculateDeposit(subtotal - appliedDiscount);
-            amountEl.textContent = deposit.toLocaleString() + ' ج.م';
-        }
-    } else {
-        amountEl.textContent = totalCost > 0 ? totalCost.toLocaleString() + ' ج.م' : '---';
+    if (selected === 'COD') {
+        if (depositInput) depositInput.value = 0;
+        return;
     }
+    if (amountEl) amountEl.textContent = totalCost > 0 ? totalCost.toLocaleString() + ' ج.م' : '---';
+    if (depositInput) depositInput.value = totalCost;
 }
 
 // Copy InstaPay number
@@ -614,35 +598,11 @@ function calculateDeposit(orderSubtotal) {
 }
 
 function updatePartialOption(shippingCost) {
-    const titleEl = document.getElementById('partial-title');
-    const descEl = document.getElementById('partial-desc');
-    const labelEl = document.getElementById('partial-fee-label');
-    const amountEl = document.getElementById('shipping-pay-amount');
-    const remainEl = document.getElementById('remaining-amount');
-    const depositInput = document.getElementById('deposit-amount-input');
-    const freeMsg = document.getElementById('free-shipping-msg');
     const shipDisplay = document.getElementById('shipping-cost-display');
-    const currentSubtotal = subtotal - appliedDiscount;
-
-    if (shippingCost > 0) {
-        titleEl.textContent = 'ادفع الشحن فقط';
-        descEl.textContent = 'ادفع رسوم الشحن الآن لتأكيد طلبك. المبلغ المتبقي يُدفع عند الاستلام.';
-        labelEl.textContent = 'رسوم الشحن';
-        amountEl.textContent = shippingCost.toLocaleString() + ' ج.م';
-        remainEl.textContent = currentSubtotal.toLocaleString() + ' ج.م';
-        depositInput.value = shippingCost;
-        if (freeMsg) freeMsg.classList.add('hidden');
-        if (shipDisplay) shipDisplay.innerHTML = shippingCost.toLocaleString() + ' ج.م';
-    } else {
-        const deposit = calculateDeposit(currentSubtotal);
-        titleEl.textContent = 'ادفع عربون تأكيد';
-        descEl.textContent = 'ادفع عربون بسيط لتأكيد جدية طلبك. المبلغ المتبقي يُدفع عند الاستلام.';
-        labelEl.textContent = 'عربون التأكيد';
-        amountEl.textContent = deposit.toLocaleString() + ' ج.م';
-        remainEl.textContent = (currentSubtotal - deposit).toLocaleString() + ' ج.م';
-        depositInput.value = deposit;
-        if (freeMsg) freeMsg.classList.remove('hidden');
-        if (shipDisplay) shipDisplay.innerHTML = '<span class="text-green-400">مجاني</span>';
+    if (shipDisplay) {
+        shipDisplay.innerHTML = shippingCost > 0
+            ? shippingCost.toLocaleString() + ' ج.م'
+            : '<span class="text-green-400">مجاني</span>';
     }
     updateAmountToPay();
 }
