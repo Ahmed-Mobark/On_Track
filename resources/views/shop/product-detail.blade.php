@@ -18,22 +18,27 @@
                 </button>
                 @endauth
                 @if($product->images->count())
-                    <img src="{{ $product->images->first()->image_url }}" alt="{{ $product->name }}"
-                         class="w-full h-full object-cover" id="main-image">
+                    <span class="img-shimmer-wrap block w-full h-full">
+                        <span class="img-shimmer skeleton" aria-hidden="true"></span>
+                        <img id="main-image" src="{{ $product->images->first()->image_url }}" alt="{{ $product->name }}" class="w-full h-full object-cover">
+                    </span>
                 @else
                     <div class="w-full h-full flex items-center justify-center text-white/20" id="main-image-placeholder">
                         <svg class="w-24 h-24" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                     </div>
-                    <img src="" alt="" class="w-full h-full object-cover hidden" id="main-image">
+                    <span class="img-shimmer-wrap block w-full h-full hidden" id="main-image-wrap">
+                        <span class="img-shimmer skeleton" aria-hidden="true"></span>
+                        <img src="" alt="" class="w-full h-full object-cover" id="main-image">
+                    </span>
                 @endif
             </div>
             {{-- Thumbnails --}}
             <div class="grid grid-cols-5 gap-2" id="thumbnails">
                 @foreach($product->images as $image)
-                    <button onclick="document.getElementById('main-image').src='{{ $image->image_url }}'"
+                    <button type="button" onclick="setShimmerImage(document.getElementById('main-image'), '{{ $image->image_url }}')"
                         class="thumb-btn aspect-square bg-brand-dark rounded-lg overflow-hidden border border-white/10 hover:border-brand-red transition-colors"
                         data-url="{{ $image->image_url }}">
-                        <img src="{{ $image->image_url }}" alt="" class="w-full h-full object-cover">
+                        <x-shimmer-img :src="$image->image_url" alt="" class="w-full h-full object-cover" />
                     </button>
                 @endforeach
             </div>
@@ -590,8 +595,9 @@
         if (colorImgs.length === 0) colorImgs = images;
         if (colorImgs.length > 0) {
             const mainImg = document.getElementById('main-image');
-            mainImg.src = colorImgs[0].image_url;
-            mainImg.classList.remove('hidden');
+            const mainWrap = document.getElementById('main-image-wrap');
+            setShimmerImage(mainImg, colorImgs[0].image_url);
+            if (mainWrap) mainWrap.classList.remove('hidden');
             const ph = document.getElementById('main-image-placeholder');
             if (ph) ph.classList.add('hidden');
 
@@ -602,9 +608,10 @@
                 const btn = document.createElement('button');
                 btn.type = 'button';
                 btn.className = 'thumb-btn aspect-square bg-brand-dark rounded-lg overflow-hidden border border-white/10 hover:border-brand-red transition-colors';
-                btn.onclick = () => { mainImg.src = img.image_url; };
-                btn.innerHTML = `<img src="${img.image_url}" alt="" class="w-full h-full object-cover">`;
+                btn.onclick = () => setShimmerImage(mainImg, img.image_url);
+                btn.innerHTML = `<span class="img-shimmer-wrap block w-full h-full"><span class="img-shimmer skeleton" aria-hidden="true"></span><img src="${img.image_url}" alt="" class="w-full h-full object-cover"></span>`;
                 thumbs.appendChild(btn);
+                initShimmerImages(btn);
             });
         }
 

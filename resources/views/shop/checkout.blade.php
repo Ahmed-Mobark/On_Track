@@ -389,7 +389,7 @@
                         <div class="flex items-center gap-3 py-1">
                             @if($item['product']->images->first())
                             <div class="w-10 h-10 rounded-lg overflow-hidden bg-white/5 shrink-0">
-                                <img src="{{ $item['product']->images->first()->image_url }}" alt="" class="w-full h-full object-cover">
+                                <x-shimmer-img :src="$item['product']->images->first()->image_url" alt="" class="w-full h-full object-cover" />
                             </div>
                             @endif
                             <div class="flex-1 min-w-0">

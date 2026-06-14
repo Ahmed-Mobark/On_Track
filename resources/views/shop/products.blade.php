@@ -110,6 +110,7 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(data => {
             container.innerHTML = data.html;
             spinner.style.display = 'none';
+            if (window.initShimmerImages) initShimmerImages(container);
             // Update URL without reload
             const url = new URL(window.location);
             url.search = params.toString();

@@ -60,6 +60,26 @@
             animation: shimmer 1.5s infinite;
         }
 
+        /* Image loading shimmer */
+        .img-shimmer-wrap {
+            position: relative;
+            overflow: hidden;
+        }
+        .img-shimmer-wrap .img-shimmer {
+            position: absolute;
+            inset: 0;
+            z-index: 1;
+            pointer-events: none;
+            transition: opacity 0.25s ease;
+        }
+        .img-shimmer-wrap:not(.is-loaded) img {
+            opacity: 0 !important;
+        }
+        .img-shimmer-wrap.is-loaded .img-shimmer {
+            opacity: 0;
+            visibility: hidden;
+        }
+
         /* Scroll indicator fade */
         @keyframes scrollPulse {
             0%, 100% { opacity: 0.4; transform: translateY(0); }
@@ -634,6 +654,47 @@
         }
     </script>
     @endauth
+
+    <script>
+    window.initShimmerImages = function (root) {
+        (root || document).querySelectorAll('.img-shimmer-wrap:not([data-shimmer-init])').forEach(function (wrap) {
+            wrap.dataset.shimmerInit = '1';
+            var img = wrap.querySelector('img');
+            if (!img) return;
+
+            function markLoaded() {
+                wrap.classList.add('is-loaded');
+                wrap.classList.remove('is-error');
+            }
+            function markError() {
+                wrap.classList.add('is-loaded', 'is-error');
+            }
+
+            if (img.complete && img.naturalWidth > 0) {
+                markLoaded();
+            } else {
+                img.addEventListener('load', markLoaded, { once: true });
+                img.addEventListener('error', markError, { once: true });
+            }
+        });
+    };
+
+    window.setShimmerImage = function (img, url) {
+        if (!img) return;
+        var wrap = img.closest('.img-shimmer-wrap');
+        if (wrap) {
+            wrap.classList.remove('is-loaded', 'is-error');
+            delete wrap.dataset.shimmerInit;
+        }
+        img.src = url;
+        img.classList.remove('hidden');
+        window.initShimmerImages(wrap || img.parentElement);
+    };
+
+    document.addEventListener('DOMContentLoaded', function () {
+        window.initShimmerImages();
+    });
+    </script>
 
     @stack('scripts')
 </body>
