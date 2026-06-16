@@ -96,7 +96,7 @@
                         ${p.images?.[0] ? `<img src="${p.images[0].url}" class="w-full h-full object-cover">` : ''}
                     </div>
                     <p class="text-white text-xs font-medium line-clamp-1">${p.name_ar || p.name}</p>
-                    <p class="text-brand-red text-xs font-bold">${p.base_price} ج.م</p>
+                    <p class="text-brand-red text-xs font-bold">${p.sale_price && p.sale_price > 0 ? p.sale_price : p.base_price} ج.م</p>
                 </div>
             `).join('');
         }
@@ -121,7 +121,7 @@
                     name: product.name_ar || product.name,
                     size: variant.size,
                     color: variant.color,
-                    price: parseFloat(variant.price || product.base_price),
+                    price: parseFloat(variant.price || product.sale_price || product.base_price),
                     quantity: 1,
                 });
             }

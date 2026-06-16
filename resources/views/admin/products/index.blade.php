@@ -41,7 +41,16 @@
                     </div>
                 </td>
                 <td class="px-4 py-3 text-white/60">{{ $product->sku }}</td>
-                <td class="px-4 py-3 text-white">{{ number_format($product->base_price) }} ج.م</td>
+                <td class="px-4 py-3">
+                    @if($product->hasDiscount())
+                        <div class="flex flex-col gap-0.5">
+                            <span class="text-brand-red font-medium">{{ number_format($product->sale_price) }} ج.م</span>
+                            <span class="text-white/30 text-xs line-through">{{ number_format($product->base_price) }} ج.م</span>
+                        </div>
+                    @else
+                        <span class="text-white">{{ number_format($product->base_price) }} ج.م</span>
+                    @endif
+                </td>
                 <td class="px-4 py-3" onclick="event.stopPropagation()">
                     <form action="{{ route('admin.products.visibility', $product) }}" method="POST" class="inline">
                         @csrf @method('PATCH')

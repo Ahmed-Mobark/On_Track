@@ -79,7 +79,7 @@ class ShippingController extends Controller
             $variant = \App\Models\ProductVariant::find($cartItem['variant_id']);
             $product = \App\Models\Product::find($cartItem['product_id']);
             if ($variant && $product) {
-                $subtotal += ((float) ($variant->price ?? $product->base_price)) * $cartItem['quantity'];
+                $subtotal += $variant->effectivePrice($product) * $cartItem['quantity'];
             }
         }
 

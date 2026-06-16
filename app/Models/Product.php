@@ -41,4 +41,20 @@ class Product extends Model
     public function scopeActive($query) { return $query->where('is_active', true); }
     public function scopeFeatured($query) { return $query->where('is_featured', true); }
     public function scopeBestSeller($query) { return $query->where('is_best_seller', true); }
+
+    public function effectivePrice(): float
+    {
+        if ($this->sale_price !== null && (float) $this->sale_price > 0) {
+            return (float) $this->sale_price;
+        }
+
+        return (float) $this->base_price;
+    }
+
+    public function hasDiscount(): bool
+    {
+        return $this->sale_price !== null
+            && (float) $this->sale_price > 0
+            && (float) $this->sale_price < (float) $this->base_price;
+    }
 }

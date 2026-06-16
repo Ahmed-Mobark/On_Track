@@ -97,6 +97,7 @@
         @php
             $productColors = $product->variants->pluck('color', 'color_hex')->unique();
             $imagesByColor = $product->images->groupBy('color_name');
+            $primaryImageId = $product->images->sortBy('sort_order')->first()?->id;
         @endphp
 
         @foreach($productColors as $hex => $colorName)
@@ -110,14 +111,7 @@
                 @if(isset($imagesByColor[$colorName]) && $imagesByColor[$colorName]->count())
                     <div class="grid grid-cols-4 gap-2 mb-3">
                         @foreach($imagesByColor[$colorName] as $image)
-                            <div class="relative rounded-lg overflow-hidden border border-white/10">
-                                <img src="{{ $image->image_url }}" class="w-full aspect-square object-cover bg-white/5">
-                                <label class="absolute inset-0 cursor-pointer">
-                                    <input type="checkbox" name="delete_images[]" value="{{ $image->id }}" class="peer hidden">
-                                    <span class="absolute top-1 right-1 w-6 h-6 flex items-center justify-center bg-black/70 hover:bg-red-600 text-white rounded-full text-base leading-none peer-checked:bg-red-600">&times;</span>
-                                    <span class="absolute inset-0 hidden peer-checked:flex items-center justify-center bg-red-600/50 text-white text-[10px] font-bold">سيتم الحذف</span>
-                                </label>
-                            </div>
+                            @include('admin.products.partials.image-admin-card', ['image' => $image, 'primaryImageId' => $primaryImageId])
                         @endforeach
                     </div>
                 @endif
@@ -141,14 +135,7 @@
                 <p class="text-white/50 text-sm mb-3">صور بدون لون محدد</p>
                 <div class="grid grid-cols-4 gap-2">
                     @foreach($untagged as $image)
-                        <div class="relative rounded-lg overflow-hidden border border-white/10">
-                            <img src="{{ $image->image_url }}" class="w-full aspect-square object-cover bg-white/5">
-                            <label class="absolute inset-0 cursor-pointer">
-                                <input type="checkbox" name="delete_images[]" value="{{ $image->id }}" class="peer hidden">
-                                <span class="absolute top-1 right-1 w-6 h-6 flex items-center justify-center bg-black/70 hover:bg-red-600 text-white rounded-full text-base leading-none peer-checked:bg-red-600">&times;</span>
-                                <span class="absolute inset-0 hidden peer-checked:flex items-center justify-center bg-red-600/50 text-white text-[10px] font-bold">سيتم الحذف</span>
-                            </label>
-                        </div>
+                        @include('admin.products.partials.image-admin-card', ['image' => $image, 'primaryImageId' => $primaryImageId])
                     @endforeach
                 </div>
             </div>

@@ -31,7 +31,7 @@ class OrderController extends Controller
             $variant = ProductVariant::find($cartItem['variant_id']);
             if (!$product || !$variant) continue;
 
-            $price = (float) ($variant->price ?? $product->base_price);
+            $price = $variant->effectivePrice($product);
             $subtotal += $price * $cartItem['quantity'];
             $items[] = [
                 'product' => $product,
@@ -136,7 +136,7 @@ class OrderController extends Controller
                 continue;
             }
 
-            $price = (float) ($variant->price ?? $product->base_price);
+            $price = $variant->effectivePrice($product);
             $subtotal += $price * $cartItem['quantity'];
             $orderItems[] = [
                 'product_id' => $cartItem['product_id'],

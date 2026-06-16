@@ -171,6 +171,11 @@ class ProductController extends Controller
         // Fallback: plain images
         $this->handleImageUpload($request, $product);
 
+        // Set primary image (lowest sort_order = main product image)
+        if ($request->primary_image_id) {
+            $this->setPrimaryImage($product, $request->primary_image_id);
+        }
+
         return redirect()->route('admin.products.index')->with('success', 'تم تحديث المنتج بنجاح');
     }
 
@@ -397,5 +402,23 @@ class ProductController extends Controller
         }
 
         return self::COLORS[$color] ?? '#000000';
+    }
+
+    private function setPrimaryImage(Product $product, string $imageId): void
+    {
+        $primary = ProductImage::where('id', $imageId)
+            ->where('product_id', $product->id)
+            ->first();
+
+        if (!$primary) {
+            return;
+        }
+
+        $primary->update(['sort_order' => 0]);
+
+        $order = 1;
+        foreach ($product->images()->where('id', '!=', $primary->id)->orderBy('sort_order')->get() as $image) {
+            $image->update(['sort_order' => $order++]);
+        }
     }
 }

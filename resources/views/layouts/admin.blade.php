@@ -26,8 +26,8 @@
 </head>
 <body class="bg-brand-black text-white min-h-screen flex">
     {{-- Sidebar --}}
-    <aside id="sidebar" class="fixed lg:static inset-y-0 right-0 z-50 w-64 bg-brand-dark border-l border-white/10 transform translate-x-full lg:translate-x-0 transition-transform">
-        <div class="flex items-center justify-between h-16 px-6 border-b border-white/10">
+    <aside id="sidebar" class="fixed lg:static inset-y-0 right-0 z-50 w-64 bg-brand-dark border-l border-white/10 flex flex-col h-screen transform translate-x-full lg:translate-x-0 transition-transform">
+        <div class="flex items-center justify-between h-16 px-6 border-b border-white/10 shrink-0">
             <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-2">
                 <img src="/images/brand/logo.png" alt="On Track" class="h-7 w-auto">
                 <span class="text-white/40 text-xs font-medium">Admin</span>
@@ -37,7 +37,7 @@
             </button>
         </div>
 
-        <nav class="p-4 space-y-1">
+        <nav class="flex-1 overflow-y-auto p-4 space-y-1 min-h-0">
             @php
                 $links = [
                     ['route' => 'admin.dashboard', 'label' => 'لوحة التحكم', 'icon' => 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6'],
@@ -67,7 +67,7 @@
             @endforeach
         </nav>
 
-        <div class="absolute bottom-0 left-0 right-0 p-4 border-t border-white/10">
+        <div class="shrink-0 p-4 border-t border-white/10 bg-brand-dark">
             <form action="{{ route('logout') }}" method="POST">
                 @csrf
                 <button type="submit" class="flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium text-white/60 hover:text-white hover:bg-white/5 w-full transition-colors">

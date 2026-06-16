@@ -222,9 +222,8 @@
                     {{-- QR Code --}}
                     <div class="flex justify-center mb-5">
                         <div class="bg-white rounded-2xl p-4 shadow-2xl">
-                            <img src="{{ asset('images/instapay-qr.png') }}" alt="InstaPay QR Code"
-                                class="w-48 h-48 object-contain"
-                                onerror="this.parentElement.innerHTML='<div class=\'w-48 h-48 flex items-center justify-center text-gray-400 text-sm\'>QR Code</div>'">
+                            <img src="{{ asset('images/instapay-qr.jpeg') }}" alt="InstaPay QR Code"
+                                class="w-48 h-48 object-contain">
                         </div>
                     </div>
 

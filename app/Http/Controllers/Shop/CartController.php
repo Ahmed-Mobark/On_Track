@@ -25,7 +25,7 @@ class CartController extends Controller
                 continue;
             }
 
-            $price = (float) ($variant->price ?? $product->base_price);
+            $price = $variant->effectivePrice($product);
             $subtotal += $price * $cartItem['quantity'];
 
             $items[] = [

@@ -20,4 +20,15 @@ class ProductVariant extends Model
     public function cartItems() { return $this->hasMany(CartItem::class, 'variant_id'); }
     public function orderItems() { return $this->hasMany(OrderItem::class, 'variant_id'); }
     public function inventoryLogs() { return $this->hasMany(InventoryLog::class, 'variant_id'); }
+
+    public function effectivePrice(?Product $product = null): float
+    {
+        if ($this->price !== null) {
+            return (float) $this->price;
+        }
+
+        $product = $product ?? $this->product;
+
+        return $product ? $product->effectivePrice() : 0;
+    }
 }
