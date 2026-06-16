@@ -657,7 +657,16 @@
 
     <script>
     window.initShimmerImages = function (root) {
-        (root || document).querySelectorAll('.img-shimmer-wrap:not([data-shimmer-init])').forEach(function (wrap) {
+        var wraps = [];
+        if (root && root.classList && root.classList.contains('img-shimmer-wrap') && !root.dataset.shimmerInit) {
+            wraps.push(root);
+        }
+        var searchRoot = root || document;
+        searchRoot.querySelectorAll('.img-shimmer-wrap:not([data-shimmer-init])').forEach(function (w) {
+            if (wraps.indexOf(w) === -1) wraps.push(w);
+        });
+
+        wraps.forEach(function (wrap) {
             wrap.dataset.shimmerInit = '1';
             var img = wrap.querySelector('img');
             if (!img) return;
@@ -680,15 +689,30 @@
     };
 
     window.setShimmerImage = function (img, url) {
-        if (!img) return;
+        if (!img || !url) return;
         var wrap = img.closest('.img-shimmer-wrap');
         if (wrap) {
             wrap.classList.remove('is-loaded', 'is-error');
             delete wrap.dataset.shimmerInit;
         }
+
+        function markLoaded() {
+            if (wrap) wrap.classList.add('is-loaded');
+        }
+        function markError() {
+            if (wrap) wrap.classList.add('is-loaded', 'is-error');
+        }
+
+        img.onload = function () { markLoaded(); img.onload = null; };
+        img.onerror = function () { markError(); img.onerror = null; };
+
+        img.removeAttribute('src');
         img.src = url;
         img.classList.remove('hidden');
-        window.initShimmerImages(wrap || img.parentElement);
+
+        if (img.complete && img.naturalWidth > 0) {
+            markLoaded();
+        }
     };
 
     document.addEventListener('DOMContentLoaded', function () {
