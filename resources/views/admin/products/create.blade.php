@@ -43,9 +43,11 @@
     {{-- Colors --}}
     <div class="bg-brand-dark rounded-xl p-6">
         <h2 class="text-white font-bold mb-1">الألوان والمقاسات والصور *</h2>
-        <p class="text-white/30 text-xs mb-4">اضغط على لون لإضافته — لكل لون هتحدد صوره ومقاساته وكميته</p>
+        <p class="text-white/30 text-xs mb-4">اضغط على لون جاهز أو أضف لون مخصص من البلtte — لكل لون حدّد صوره ومقاساته وكميته</p>
 
         <div class="flex flex-wrap gap-2 mb-4" id="color-buttons"></div>
+
+        @include('admin.products.partials.custom-color-form')
 
         <div id="no-colors-msg" class="border-2 border-dashed border-white/10 rounded-xl p-6 text-center">
             <p class="text-white/30 text-sm">اضغط على لون من فوق لإضافته</p>
@@ -84,7 +86,7 @@
     <div class="bg-brand-dark rounded-xl p-6">
         <div class="flex flex-wrap gap-4">
             <label class="flex items-center gap-2 text-white/70 text-sm">
-                <input type="checkbox" name="is_active" value="1" checked> نشط
+                <input type="checkbox" name="is_active" value="1" checked> ظاهر في المتجر
             </label>
             <label class="flex items-center gap-2 text-white/70 text-sm">
                 <input type="checkbox" name="is_featured" value="1"> مميز
@@ -147,15 +149,48 @@ function renderColorButtons() {
     });
 }
 
+function showCustomColorError(msg) {
+    const el = document.getElementById('custom-color-error');
+    if (el) { el.textContent = msg; el.classList.remove('hidden'); }
+}
+
+function hideCustomColorError() {
+    const el = document.getElementById('custom-color-error');
+    if (el) el.classList.add('hidden');
+}
+
+function addCustomColor() {
+    const nameInput = document.getElementById('custom-color-name');
+    const hexInput = document.getElementById('custom-color-hex');
+    const name = (nameInput?.value || '').trim();
+    const hex = hexInput?.value || '#808080';
+
+    if (!name) {
+        showCustomColorError('اكتب اسم اللون');
+        return;
+    }
+    if (addedColors.has(name)) {
+        showCustomColorError('اللون موجود بالفعل');
+        return;
+    }
+    hideCustomColorError();
+    addColorWithHex(name, hex);
+    if (nameInput) nameInput.value = '';
+}
+
+function addColorWithHex(colorName, hex) {
+    if (addedColors.has(colorName)) return;
+    addedColors.add(colorName);
+    renderColorButtons();
+    document.getElementById('no-colors-msg').classList.add('hidden');
+    buildColorSection(colorName, hex);
+}
+
 function addColor(colorName) {
     if (addedColors.has(colorName)) return;
     const colorObj = allColors.find(c => c.name === colorName);
     if (!colorObj) return;
-
-    addedColors.add(colorName);
-    renderColorButtons();
-    document.getElementById('no-colors-msg').classList.add('hidden');
-    buildColorSection(colorObj.name, colorObj.hex);
+    addColorWithHex(colorName, colorObj.hex);
 }
 
 function removeColor(colorName) {
@@ -201,6 +236,7 @@ function buildColorSection(color, hex) {
         </div>
 
         <div class="space-y-4">
+            <input type="hidden" name="variants[${color}][hex]" value="${hex}">
             <div>
                 <p class="text-white/70 text-sm font-medium mb-2">الصور</p>
                 <div class="upload-area border-2 border-dashed border-white/15 rounded-lg p-4 text-center cursor-pointer hover:border-brand-red transition-colors"

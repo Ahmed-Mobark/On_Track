@@ -159,9 +159,12 @@
     {{-- Add new colors --}}
     <div class="bg-brand-dark rounded-xl p-6">
         <h2 class="text-white font-bold mb-1">إضافة لون جديد</h2>
-        <p class="text-white/30 text-xs mb-4">اضغط على لون لإضافته بمقاساته وكميته وصوره</p>
+        <p class="text-white/30 text-xs mb-4">اضغط على لون جاهز أو أضف لون مخصص من البلtte بمقاساته وكميته وصوره</p>
 
         <div class="flex flex-wrap gap-2 mb-4" id="color-buttons"></div>
+
+        @include('admin.products.partials.custom-color-form')
+
         <div id="new-color-sections" class="space-y-4"></div>
     </div>
 
@@ -183,7 +186,7 @@
     <div class="bg-brand-dark rounded-xl p-6">
         <div class="flex flex-wrap gap-4">
             <label class="flex items-center gap-2 text-white/70 text-sm">
-                <input type="checkbox" name="is_active" value="1" {{ $product->is_active ? 'checked' : '' }}> نشط
+                <input type="checkbox" name="is_active" value="1" {{ $product->is_active ? 'checked' : '' }}> ظاهر في المتجر
             </label>
             <label class="flex items-center gap-2 text-white/70 text-sm">
                 <input type="checkbox" name="is_featured" value="1" {{ $product->is_featured ? 'checked' : '' }}> مميز
@@ -237,7 +240,7 @@ function renderColorButtons() {
     container.innerHTML = '';
     const available = allColors.filter(c => !existingColors.has(c.name) && !addedColors.has(c.name));
     if (!available.length) {
-        container.innerHTML = '<p class="text-white/30 text-xs">كل الألوان مضافة بالفعل</p>';
+        container.innerHTML = '<p class="text-white/30 text-xs">كل الألوان الجاهزة مضافة — أو أضف لون مخصص من الأسفل</p>';
         return;
     }
     available.forEach(c => {
@@ -250,13 +253,47 @@ function renderColorButtons() {
     });
 }
 
+function showCustomColorError(msg) {
+    const el = document.getElementById('custom-color-error');
+    if (el) { el.textContent = msg; el.classList.remove('hidden'); }
+}
+
+function hideCustomColorError() {
+    const el = document.getElementById('custom-color-error');
+    if (el) el.classList.add('hidden');
+}
+
+function addCustomColor() {
+    const nameInput = document.getElementById('custom-color-name');
+    const hexInput = document.getElementById('custom-color-hex');
+    const name = (nameInput?.value || '').trim();
+    const hex = hexInput?.value || '#808080';
+
+    if (!name) {
+        showCustomColorError('اكتب اسم اللون');
+        return;
+    }
+    if (addedColors.has(name) || existingColors.has(name)) {
+        showCustomColorError('اللون موجود بالفعل');
+        return;
+    }
+    hideCustomColorError();
+    addColorWithHex(name, hex);
+    if (nameInput) nameInput.value = '';
+}
+
+function addColorWithHex(colorName, hex) {
+    if (addedColors.has(colorName) || existingColors.has(colorName)) return;
+    addedColors.add(colorName);
+    renderColorButtons();
+    buildColorSection(colorName, hex);
+}
+
 function addColor(colorName) {
     if (addedColors.has(colorName) || existingColors.has(colorName)) return;
     const colorObj = allColors.find(c => c.name === colorName);
     if (!colorObj) return;
-    addedColors.add(colorName);
-    renderColorButtons();
-    buildColorSection(colorObj.name, colorObj.hex);
+    addColorWithHex(colorName, colorObj.hex);
 }
 
 function removeColor(colorName) {
@@ -297,6 +334,7 @@ function buildColorSection(color, hex) {
             <button type="button" onclick="removeColor('${color}')" class="text-red-400 text-xs hover:underline">حذف اللون</button>
         </div>
         <div class="space-y-4">
+            <input type="hidden" name="variants[${color}][hex]" value="${hex}">
             <div>
                 <p class="text-white/70 text-sm font-medium mb-2">الصور</p>
                 <div class="border-2 border-dashed border-white/15 rounded-lg p-4 text-center cursor-pointer hover:border-brand-red transition-colors"

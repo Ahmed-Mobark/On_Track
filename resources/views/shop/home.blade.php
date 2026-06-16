@@ -131,8 +131,8 @@
                 {{-- Stats --}}
                 <div class="hero-cta flex items-center gap-8 mt-10 justify-center lg:justify-start" style="animation-delay: 1.6s">
                     @foreach([
-                        ['value' => '+500', 'label' => 'منتج'],
-                        ['value' => '+2K', 'label' => 'عميل سعيد'],
+                        ['value' => '+20', 'label' => 'منتج'],
+                        ['value' => '+500', 'label' => 'عميل سعيد'],
                         ['value' => '100%', 'label' => 'جودة مضمونة'],
                     ] as $i => $stat)
                         <div class="hero-stat text-center" style="animation-delay: {{ 1.6 + ($i * 0.15) }}s">

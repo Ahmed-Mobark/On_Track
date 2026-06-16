@@ -23,7 +23,7 @@
                 <th class="px-4 py-3 text-right">المنتج</th>
                 <th class="px-4 py-3 text-right">SKU</th>
                 <th class="px-4 py-3 text-right">السعر</th>
-                <th class="px-4 py-3 text-right">الحالة</th>
+                <th class="px-4 py-3 text-right">المتجر</th>
                 <th class="px-4 py-3 text-right">إجراءات</th>
             </tr>
         </thead>
@@ -42,13 +42,17 @@
                 </td>
                 <td class="px-4 py-3 text-white/60">{{ $product->sku }}</td>
                 <td class="px-4 py-3 text-white">{{ number_format($product->base_price) }} ج.م</td>
-                <td class="px-4 py-3">
-                    <span class="text-xs px-2 py-1 rounded-full {{ $product->is_active ? 'bg-green-500/10 text-green-400' : 'bg-red-500/10 text-red-400' }}">
-                        {{ $product->is_active ? 'نشط' : 'غير نشط' }}
-                    </span>
+                <td class="px-4 py-3" onclick="event.stopPropagation()">
+                    <form action="{{ route('admin.products.visibility', $product) }}" method="POST" class="inline">
+                        @csrf @method('PATCH')
+                        <button type="submit"
+                            class="text-xs px-3 py-1.5 rounded-lg font-medium transition-colors {{ $product->is_active ? 'bg-green-500/10 text-green-400 hover:bg-green-500/20' : 'bg-white/5 text-white/50 hover:bg-white/10' }}">
+                            {{ $product->is_active ? 'إخفاء من المتجر' : 'إظهار في المتجر' }}
+                        </button>
+                    </form>
                 </td>
                 <td class="px-4 py-3">
-                    <div class="flex items-center gap-2">
+                    <div class="flex items-center gap-2" onclick="event.stopPropagation()">
                         <a href="{{ route('admin.products.edit', $product) }}" class="text-blue-400 hover:underline text-xs">تعديل</a>
                         <form action="{{ route('admin.products.destroy', $product) }}" method="POST" onsubmit="return confirm('هل أنت متأكد؟')">
                             @csrf @method('DELETE')

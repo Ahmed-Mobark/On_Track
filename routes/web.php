@@ -116,6 +116,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     Route::post('/ai-assistant', [AiAssistantController::class, 'query'])->name('ai-assistant');
 
     Route::resource('products', AdminProductController::class)->except(['show']);
+    Route::patch('/products/{product}/visibility', [AdminProductController::class, 'toggleVisibility'])->name('products.visibility');
     Route::resource('categories', CategoryController::class)->except(['show', 'create', 'edit']);
     Route::resource('coupons', CouponController::class)->except(['show', 'create', 'edit']);
 

@@ -69,7 +69,7 @@ class ProductController extends Controller
 
         // Create variants per color → sizes
         foreach ($request->variants as $color => $colorData) {
-            $hex = self::COLORS[$color] ?? '#000000';
+            $hex = $this->resolveColorHex($color, $colorData);
             $sizes = $colorData['sizes'] ?? [];
             $qty = (int) ($colorData['quantity'] ?? 10);
 
@@ -135,7 +135,7 @@ class ProductController extends Controller
                 ->flip();
 
             foreach ($request->variants as $color => $colorData) {
-                $hex = self::COLORS[$color] ?? '#000000';
+                $hex = $this->resolveColorHex($color, $colorData);
                 $sizes = $colorData['sizes'] ?? [];
                 $qty = (int) ($colorData['quantity'] ?? 10);
 
@@ -174,6 +174,22 @@ class ProductController extends Controller
         return redirect()->route('admin.products.index')->with('success', 'تم تحديث المنتج بنجاح');
     }
 
+    public function toggleVisibility(Product $product)
+    {
+        $product->update(['is_active' => !$product->is_active]);
+
+        $message = $product->is_active ? 'تم إظهار المنتج في المتجر' : 'تم إخفاء المنتج من المتجر';
+
+        if (request()->wantsJson() || request()->ajax()) {
+            return response()->json([
+                'is_active' => $product->is_active,
+                'message' => $message,
+            ]);
+        }
+
+        return back()->with('success', $message);
+    }
+
     public function destroy(Product $product)
     {
         foreach ($product->images as $image) {
@@ -191,8 +207,10 @@ class ProductController extends Controller
 
         $sortOrder = $product->images()->max('sort_order') ?? -1;
 
+        $variantsData = $request->variants ?? [];
+
         foreach ($colorImages as $colorName => $files) {
-            $hex = self::COLORS[$colorName] ?? null;
+            $hex = $this->resolveColorHex($colorName, $variantsData[$colorName] ?? [], $product);
 
             foreach ($files as $file) {
                 $sortOrder++;
@@ -361,5 +379,23 @@ class ProductController extends Controller
 
         @unlink($out);
         return null;
+    }
+
+    private function resolveColorHex(string $color, array $colorData = [], ?Product $product = null): string
+    {
+        $hex = $colorData['hex'] ?? self::COLORS[$color] ?? null;
+
+        if (is_string($hex) && preg_match('/^#[0-9A-Fa-f]{6}$/', $hex)) {
+            return strtoupper($hex);
+        }
+
+        if ($product) {
+            $fromVariant = $product->variants()->where('color', $color)->value('color_hex');
+            if ($fromVariant) {
+                return strtoupper($fromVariant);
+            }
+        }
+
+        return self::COLORS[$color] ?? '#000000';
     }
 }
